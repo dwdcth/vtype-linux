@@ -412,7 +412,7 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       系统 ngram 主导，热词大概率只影响联想/长句路径（与
       wxime_get_most_likely_sequel 联想导出呼应）。官方 server import 54
       个 wxime_*（无 add_user_history——那是 Android/Mac 宿主用）。
-22. **联想 API 链路逆向与断点（2026-10-21）**：
+20. **联想 API 链路逆向与断点（2026-10-21）**：
     - **已确证 ABI**（server 调用现场合成）：
       `wxime_set_text_around_cursor(session, 前文,len, 选中,len, 后文,len,
       int)`（1401af64a 现场，引擎日志验证 before_len 生效；返回值是残
@@ -426,7 +426,7 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       sequel 本体 `call *0x20(%r8)` 的内部 functor 链（vtable
       0x180e1c2b0，第 5 槽 0x1801cbdc0 为析构 thunk，真正投递槽待定）
       或 server 侧联想取回接口（管道消息）。
-23. **工具与资产**（win/ 内）：
+21. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
       解引用层捕获）、dbg6.c（调试 probe3 自身）。
