@@ -19,6 +19,12 @@ static volatile LONG g_snap_total;      /* 本轮候选总数（可超快照上�
 static volatile LONG g_snap_ready;      /* 快照待取 */
 static volatile LONG g_enum_events;     /* 候选更新事件数 */
 static volatile LONG g_skipped_events;  /* 其他事件数 */
+static volatile LONG g_listener_busy;   /* listener 执行中（发键前须归零） */
+
+int wxime_event_listener_idle(void)
+{
+    return g_listener_busy == 0;
+}
 
 /* ---------------- 候选 TLV 解码（ci+0x20 → 拼音/词） ----------------
  * TLV：`02|tag(4B)|序号` 头 + 0x1C 起长度前缀 UTF-8 串（可能带 [01][n] 计数
@@ -63,15 +69,20 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
                                         void *e, void *f)
 {
     (void)c; (void)d; (void)e; (void)f;
+    InterlockedIncrement(&g_listener_busy);
     fprintf(stderr, "[wxhost] listener 入口: a=%p b=%p\n", a, b);
     fflush(stderr);
     unsigned char *ev = (unsigned char *)b;
-    if (!ev || IsBadReadPtr(ev, 0x98)) return 0;
+    if (!ev || IsBadReadPtr(ev, 0x98)) { InterlockedDecrement(&g_listener_busy); return 0; }
 
     /* 类型门：候选更新事件（双接口自引用 + payload 非空）才可枚举 */
     int is_cand = (*(void **)(ev + WXIME_EVENT_SELFREF_OFF) == b &&
                    *(void **)(ev + WXIME_EVENT_PAYLOFF_OFF) != NULL);
-    if (!is_cand) { InterlockedIncrement(&g_skipped_events); return 0; }
+    if (!is_cand) {
+        InterlockedIncrement(&g_skipped_events);
+        InterlockedDecrement(&g_listener_busy);
+        return 0;
+    }
     InterlockedIncrement(&g_enum_events);
 
     if (s_get_candidates) {
@@ -85,6 +96,7 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
         fprintf(stderr, "[wxhost] listener: 候选事件，枚举 %ld 个，ready=1\n", total);
         fflush(stderr);
     }
+    InterlockedDecrement(&g_listener_busy);
     return 0;
 }
 

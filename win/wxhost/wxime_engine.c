@@ -14,6 +14,7 @@
 #include <windows.h>
 #include "wxime_engine.h"
 #include "wxime_event.h"
+#include "wxime_event.h"
 
 /* ---------------- 日志 ---------------- */
 void wxime_log(const char *fmt, ...)
@@ -325,6 +326,9 @@ wxime_session *wxime_session_open(wxime_engine *eng)
 
 int wxime_send_key(wxime_session *s, const char *utf8_key, int len)
 {
+    /* 引擎会话线程可能还在上一键的事件回调里（726 候选枚举毫秒级）——
+     * 撞进去会崩（nihaoma 7 键连发实测）。等 listener 空闲再发。 */
+    for (int i = 0; i < 100 && !wxime_event_listener_idle(); i++) Sleep(2);
     /* r9 必须传堆上 context/out 缓冲（传 NULL 会穿空指针崩 vmovdqu） */
     memset(s->inctx, 0, WXIME_INPUT_CTX_SIZE);
     return s->eng->process_input(s->handle, utf8_key, len, s->inctx, WXIME_MAGIC_10);
@@ -332,12 +336,20 @@ int wxime_send_key(wxime_session *s, const char *utf8_key, int len)
 
 int wxime_select(wxime_session *s, const void *cand_tlv, const char *word)
 {
+    /* select 前等 listener 空闲 + 短暂喘息（对照 probe3 的时序余量；
+     * 不等的话引擎事件分发线程会静默死亡——select 后再无任何事件） */
+    for (int i = 0; i < 100 && !wxime_event_listener_idle(); i++) Sleep(2);
+    Sleep(100);
     int wl = word ? (int)strlen(word) : 0;
     if (!cand_tlv || wl <= 0) return -1;
     if (wl > 15) wl = 15;   /* SSO 缓冲 16 字节 */
 
-    unsigned char sst[WXIME_SELECT_CTX_SIZE];
-    unsigned char idbuf[128];
+    /* ★sst/idbuf 必须 static（引擎异步消费：select 投任务后会话线程才读
+     * sst——栈缓冲函数返回即回收，会话线程读到垃圾后事件分发线程静默
+     * 死亡，之后所有按键零事件。probe3 用 static 恰好存活，实证此差异）。 */
+    static unsigned char sst[WXIME_SELECT_CTX_SIZE];
+    static unsigned char idbuf[128];
+    long long outv[4] = { 0, 0, 0, 0 };
     memset(sst, 0, sizeof sst);
     memset(idbuf, 0, sizeof idbuf);
     memcpy(sst, word, (size_t)wl);
@@ -347,7 +359,6 @@ int wxime_select(wxime_session *s, const void *cand_tlv, const char *word)
     *(unsigned long long *)(sst + 0x30) = 100;
     *(unsigned long long *)(sst + 0x38) = 0x6F;
 
-    long long outv[4] = { 0, 0, 0, 0 };
     int sr = s->eng->select_candidate(s->handle, sst, wl, (void *)cand_tlv,
                                       100, idbuf, 0, outv, WXIME_MAGIC_10, NULL);
     wxime_log("select_candidate(word=\"%s\") -> %d", word, sr);

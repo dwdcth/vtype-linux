@@ -147,6 +147,10 @@ int wxhost_serve(wxime_engine *eng)
                 fprintf(stderr, "[wxhost] S idx=%d 整段完成（上屏=\"%s\"）\n",
                         idx, g_snap[idx].word);
                 g_snap_n = 0;
+                /* ★整段完成 = 引擎会话进入 post-commit 终态（实测事件分发
+                 * 停摆，之后按键零事件）——自动销毁重建，回到初始态。
+                 * 对齐插件契约：OK = 插件清缓冲，引擎侧同样干净。 */
+                wxime_session_reset(sess);
                 printf("OK\n"); fflush(stdout);
             }
             continue;

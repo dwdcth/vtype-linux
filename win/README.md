@@ -329,13 +329,20 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       demo 的 300ms 间隔从不触发、Route W 有管道 IO 延迟天然掩盖。
       **修复：逐键间 Sleep(20ms)**。
     - **已知问题（下轮攻）**：
-      a) B nihaoma（7 键连发）触发致命崩溃（AV fault=-1 tagged，进程死，
-        后续命令无应答）——疑键间隔仍不够或异步分发线程崩赶上主流程；
+      a) **重置会话 + 7 键连发（B nihaoma）仍致命崩**（AV fault=-1 tagged；
+        首会话同序列不崩——疑 destroy 后引擎内部线程/队列残留，重置会话
+        更脆弱。20/50ms 键间隔均无效，非间隔问题）。下轮：dbg 断崩溃点，
+        或改用 wxime_reset_session 导出代替 destroy+create；
       b) completion 型候选（'n' 事件的 n→ni 补全表，726 个）select 会引
         引擎抛 C++ 异常（0xe06d7363）；exact_match 型（nihao→你好）可选；
       c) 'i' 键（非终结键）的候选事件被类型门排除——打 "ni" 看到的还是
         'n' 的列表（无"咱"），Route W 管道模式每键都有 candidateUpdate，
         门条件需再细化。
+    - **★已修（本轮）**：整段 select 后引擎会话进 post-commit 终态（事件
+      分发停摆、后续按键零事件）→ S 整段完成时**自动销毁重建会话**（对齐
+      插件契约 OK=双方清干净）；listener 空闲守卫（发键/选词前等引擎会话
+      线程出回调）；**select 的 sst/idbuf 必须 static**（引擎异步消费，
+      栈缓冲函数返回即回收 → 会话线程读垃圾 → 分发线程静默死）。
     - C 命令 = 会话销毁重建（wxime_destroy_session + create，ESC 清不掉
       候选展示状态，同 Route W 语义）。
 18. **工具与资产**（win/ 内）：

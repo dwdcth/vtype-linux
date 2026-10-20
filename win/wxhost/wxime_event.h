@@ -29,4 +29,7 @@ int wxime_poll_candidates(wxime_candidate *out, int max);
 /* 诊断：listener 期间累计的枚举/门统计（复位数） */
 int wxime_event_stats(int *enum_events, int *skipped_events);
 
+/* listener 是否空闲（引擎会话线程不在我们回调里）——发键前等待用 */
+int wxime_event_listener_idle(void);
+
 #endif /* WXIME_EVENT_H */
