@@ -320,7 +320,25 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
     - probe3.c 从此冻结为实证参考（诊断 dump 齐全），新功能进 wxhost。
     - emit 事件负载布局随事件形态漂移（b+0x38 目标不恒定），故不做脆弱
       提取；宿主以自选词为准即可。
-17. **工具与资产**（win/ 内）：
+17. **★行协议接入（wxhost --serve，2026-10-21 深夜）**：
+    - `wxhost/wxhost_serve.h/.c`：Route W 同款命令集（B/L/S/C/PING/SAVE/Q/
+      OPT/R/HK），fcitx5 插件无需改动即可切 Route C 后端。
+      `scripts/run_wxhost_test.sh` E2E：nihao→CAND→S 0→OK 全通。
+    - **★键间隔竞态（重要发现）**：B 命令逐键背靠背（微秒级）会让引擎
+      首个 SigBatch 分发批次被下一键吞掉（listener 收不到候选事件→EMPTY）。
+      demo 的 300ms 间隔从不触发、Route W 有管道 IO 延迟天然掩盖。
+      **修复：逐键间 Sleep(20ms)**。
+    - **已知问题（下轮攻）**：
+      a) B nihaoma（7 键连发）触发致命崩溃（AV fault=-1 tagged，进程死，
+        后续命令无应答）——疑键间隔仍不够或异步分发线程崩赶上主流程；
+      b) completion 型候选（'n' 事件的 n→ni 补全表，726 个）select 会引
+        引擎抛 C++ 异常（0xe06d7363）；exact_match 型（nihao→你好）可选；
+      c) 'i' 键（非终结键）的候选事件被类型门排除——打 "ni" 看到的还是
+        'n' 的列表（无"咱"），Route W 管道模式每键都有 candidateUpdate，
+        门条件需再细化。
+    - C 命令 = 会话销毁重建（wxime_destroy_session + create，ESC 清不掉
+      候选展示状态，同 Route W 语义）。
+18. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
       解引用层捕获）、dbg6.c（调试 probe3 自身）。

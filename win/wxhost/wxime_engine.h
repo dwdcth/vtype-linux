@@ -41,4 +41,9 @@ int wxime_select(wxime_session *sess, const void *cand_tlv, const char *word);
 /* 预热（可选，server 在挂 listener 后调用） */
 int wxime_warm_up(wxime_session *sess);
 
+/* 会话重置（C 命令）：销毁当前会话并重建（ESC 清不掉候选展示状态，
+ * 唯一可靠的重置方式，同 Route W 断线重连语义）。listener 自动重挂。
+ * 返回 0=成功。 */
+int wxime_session_reset(wxime_session *sess);
+
 #endif /* WXIME_ENGINE_H */

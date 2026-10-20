@@ -358,3 +358,25 @@ int wxime_warm_up(wxime_session *s)
 {
     return s->eng->warm_up ? s->eng->warm_up(s->handle) : 0;
 }
+
+int wxime_session_reset(wxime_session *s)
+{
+    wxime_destroy_session_fn destroy =
+        (wxime_destroy_session_fn)(uintptr_t)GetProcAddress(
+            s->eng->dll, "wxime_destroy_session");
+    if (destroy && s->handle) {
+        wxime_log("destroy_session(%p)", s->handle);
+        destroy(s->handle);
+    }
+    unsigned char sc[WXIME_SESSIONCFG_SIZE];
+    memcpy(sc, k_sc_real, sizeof k_sc_real);
+    *(const char **)(sc + 0xC0) = "wxhost";
+    *(int *)(sc + 0xDC) = 5;
+    wxime_log("create_session（重置）...");
+    s->handle = s->eng->create_session(sc);
+    wxime_log("session = %p", s->handle);
+    if (!s->handle) return -1;
+    wxime_event_attach(s->handle, s->eng->get_candidates);
+    if (s->eng->warm_up) s->eng->warm_up(s->handle);
+    return 0;
+}

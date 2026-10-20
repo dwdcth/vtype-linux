@@ -63,6 +63,8 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
                                         void *e, void *f)
 {
     (void)c; (void)d; (void)e; (void)f;
+    fprintf(stderr, "[wxhost] listener 入口: a=%p b=%p\n", a, b);
+    fflush(stderr);
     unsigned char *ev = (unsigned char *)b;
     if (!ev || IsBadReadPtr(ev, 0x98)) return 0;
 
@@ -80,6 +82,8 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
         LONG total = g_snap_total;
         InterlockedExchange(&g_snap_count, total < WXIME_SNAP_MAX ? total : WXIME_SNAP_MAX);
         InterlockedExchange(&g_snap_ready, 1);
+        fprintf(stderr, "[wxhost] listener: 候选事件，枚举 %ld 个，ready=1\n", total);
+        fflush(stderr);
     }
     return 0;
 }

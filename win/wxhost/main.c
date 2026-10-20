@@ -12,6 +12,7 @@
 #include <windows.h>
 #include "wxime_engine.h"
 #include "wxime_event.h"
+#include "wxhost_serve.h"
 
 /* VEH 崩溃捕获（clang PE 无 SEH __try） */
 static LONG WINAPI crash_veh(PEXCEPTION_POINTERS ep)
@@ -26,11 +27,18 @@ static LONG WINAPI crash_veh(PEXCEPTION_POINTERS ep)
 
 int main(int argc, char **argv)
 {
-    const char *engine_dir = argc > 1 ? argv[1] : ".";
+    /* 两种模式：
+     *   wxhost.exe --serve [引擎目录]   行协议服务（fcitx5 插件后端）
+     *   wxhost.exe [引擎目录]           演示：nihao→候选→选词→活性验证 */
+    int serve = argc > 1 && !strcmp(argv[1], "--serve");
+    const char *engine_dir = serve ? (argc > 2 ? argv[2] : ".")
+                                   : (argc > 1 ? argv[1] : ".");
     AddVectoredExceptionHandler(1, crash_veh);
 
     wxime_engine *eng = wxime_open(engine_dir, "wxhost");
     if (!eng) { wxime_log("wxime_open 失败"); return 1; }
+
+    if (serve) return wxhost_serve(eng);
 
     wxime_session *sess = wxime_session_open(eng);
     if (!sess) { wxime_log("wxime_session_open 失败"); return 2; }
