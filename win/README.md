@@ -343,6 +343,14 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       插件契约 OK=双方清干净）；listener 空闲守卫（发键/选词前等引擎会话
       线程出回调）；**select 的 sst/idbuf 必须 static**（引擎异步消费，
       栈缓冲函数返回即回收 → 会话线程读垃圾 → 分发线程静默死）。
+    - **★组词事件候选容器已定位（2026-10-21，WXHOST_DUMP_EV=1 扫描）**：
+      组词事件（'i' 等非终结键）b+0x18（b+0x48 同引用）→ 容器对象，
+      其 +0x20 起为候选指针数组，每元素 +0x00 或 +0x10 内联 SSO 词。
+      'i' 事件实测 3 词（你/拟/拟 = ni 的 exact 首屏）。与 Route W ni 列表
+      （你/咱/那/能/拿/年/您/哪/弄 9 词）的关系待查：容器或为首屏精简表，
+      server 的完整列表另有来源（疑重枚举 iterator 或别的容器字段）。
+      活视图重枚举假说已试败（组词事件里 get_candidates 会死锁/死机）。
+      诊断开关：serve 加 WXHOST_DUMP_EV=1 环境变量扫组词事件文本。
     - C 命令 = 会话销毁重建（wxime_destroy_session + create，ESC 清不掉
       候选展示状态，同 Route W 语义）。
 18. **工具与资产**（win/ 内）：

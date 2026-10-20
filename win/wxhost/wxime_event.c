@@ -21,6 +21,66 @@ static volatile LONG g_enum_events;     /* 候选更新事件数 */
 static volatile LONG g_skipped_events;  /* 其他事件数 */
 static volatile LONG g_listener_busy;   /* listener 执行中（发键前须归零） */
 
+/* 诊断：三级指针遍历找内联 CJK UTF-8 串（WXHOST_DUMP_EV=1 时组词事件触发），
+ * 用于定位组词事件携带的候选表（Route W server 从此生成逐键 candidateUpdate） */
+static void scan_utf8(unsigned char *s, int len, const char *path)
+{
+    for (int k = 0; k + 3 <= len; k++) {
+        if (s[k] >= 0xE4 && s[k] <= 0xE9 &&
+            (s[k+1] & 0xC0) == 0x80 && (s[k+2] & 0xC0) == 0x80) {
+            char out[65]; int n = 0, q = k;
+            while (q + 3 <= len && n + 3 < 64 &&
+                   s[q] >= 0xE4 && s[q] <= 0xE9 &&
+                   (s[q+1] & 0xC0) == 0x80 && (s[q+2] & 0xC0) == 0x80) {
+                out[n++] = s[q]; out[n++] = s[q+1]; out[n++] = s[q+2];
+                q += 3;
+            }
+            out[n] = 0;
+            if (n >= 3) fprintf(stderr, "[wxhost]   文本 %s +%x: \"%s\"\n", path, k, out);
+            k = q - 1;
+        }
+    }
+}
+static void dump_event_texts(unsigned char *ev)
+{
+    static int do_dump = -1;
+    if (do_dump < 0) {
+        const char *e = getenv("WXHOST_DUMP_EV");
+        do_dump = (e && *e) ? 1 : 0;
+    }
+    if (!do_dump) return;
+    /* b+0x18 → 候选容器：+0x20 起指针数组，每元素 +0x00/+0x10 内联 SSO 词。
+     * 完整扫容器前 0x200（数组元素可能十几个）。 */
+    unsigned long long arr = *(unsigned long long *)(ev + 0x18);
+    if (arr > 0x10000 && arr < 0x7fffffffffffULL && !IsBadReadPtr((void *)arr, 0x200)) {
+        for (int i = 0; i < 40; i++) {
+            unsigned long long ce = *(unsigned long long *)((unsigned char *)arr + 0x20 + i * 8);
+            if (ce <= 0x10000 || ce >= 0x7fffffffffffULL || IsBadReadPtr((void *)ce, 0x20)) continue;
+            char path[32]; snprintf(path, sizeof path, "容器[%d]", i);
+            scan_utf8((unsigned char *)ce, 0x20, path);
+        }
+    }
+    for (int off = 0x08; off <= 0x88; off += 8) {
+        unsigned long long p = *(unsigned long long *)(ev + off);
+        if (p <= 0x10000 || p >= 0x7fffffffffffULL || IsBadReadPtr((void *)p, 0x40)) continue;
+        char p1[16]; snprintf(p1, sizeof p1, "L1+%x", off);
+        scan_utf8((unsigned char *)p, 0x40, p1);
+        for (int off2 = 0; off2 <= 0x38; off2 += 8) {
+            unsigned long long p2 = *(unsigned long long *)((unsigned char *)p + off2);
+            if (p2 <= 0x10000 || p2 >= 0x7fffffffffffULL || IsBadReadPtr((void *)p2, 0x40)) continue;
+            char p2s[32]; snprintf(p2s, sizeof p2s, "L1+%x->L2+%x", off, off2);
+            scan_utf8((unsigned char *)p2, 0x40, p2s);
+            for (int off3 = 0; off3 <= 0x38; off3 += 8) {
+                unsigned long long p3 = *(unsigned long long *)((unsigned char *)p2 + off3);
+                if (p3 <= 0x10000 || p3 >= 0x7fffffffffffULL || IsBadReadPtr((void *)p3, 0x40)) continue;
+                char p3s[48]; snprintf(p3s, sizeof p3s, "L1+%x->L2+%x->L3+%x", off, off2, off3);
+                scan_utf8((unsigned char *)p3, 0x40, p3s);
+            }
+        }
+    }
+    fflush(stderr);
+}
+
 int wxime_event_listener_idle(void)
 {
     return g_listener_busy == 0;
@@ -80,6 +140,7 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
                    *(void **)(ev + WXIME_EVENT_PAYLOFF_OFF) != NULL);
     if (!is_cand) {
         InterlockedIncrement(&g_skipped_events);
+        dump_event_texts(ev);   /* 诊断：WXHOST_DUMP_EV=1 时扫组词事件文本 */
         InterlockedDecrement(&g_listener_busy);
         return 0;
     }
