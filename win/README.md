@@ -363,7 +363,28 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       另：仅得组词表时等待窗口延长一档（'h' 候选事件间歇晚到）。
     - C 命令 = 会话销毁重建（wxime_destroy_session + create，ESC 清不掉
       候选展示状态，同 Route W 语义）。
-18. **工具与资产**（win/ 内）：
+18. **★★★ rime-wetype 插件端到端打通（2026-10-21）**：
+    - `win/rime/wetype/`（librime 插件）：Translator 逐键增量喂 wxhost
+      （子进程管道），微信引擎候选回到 librime；提交时 commit_notifier
+      → S 选词（引擎词频学习）。`win/rime/wetype.schema.yaml` 输入方案。
+    - **E2E 实证**（librime 1.17 + rime_api_console）：
+      `printf "nihao\n1\n" | rime_api_console` → 候选 1.[你好] 2.你还
+      3.你和 4.你会 5.你回 → **commit: 你好**。
+    - 构建法（本机实测）：系统 leveldb/marisa/opencc/yaml-cpp + 自编
+      boost regex（archives.boost.io 全量包，`./b2 --with-regex install`）
+      + `cmake -DENABLE_LOGGING=OFF -DBUILD_TEST=OFF`；部署用系统
+      /usr/share/rime-data（**不是** /usr/share/rime）。
+    - 本轮连带修复 wxhost 三处：
+      a) **serve 模式日志污染协议通道**（stdout 混 [wxhost]/[engine] 日志
+         → 客户端读不到 READY）——serve 时全部日志切 stderr
+         （wxime_log_to_stderr）；
+      b) **毒链预校验误拦**：IsBadReadPtr(q1,0x28) 整块验会越界误报
+         （'h' 事件 iterator 的 q1 小对象）→ 125 词表被丢；改为只验
+         引擎实际解引用的字节（q1+0x20 处 8B、q2 处 8B）；
+      c) **非终结键无事件 = 候选不变**（nihao 的 a/o 键引擎不推事件）：
+         B 应答 EMPTY 时沿用最近有效表（符合引擎语义，S 索引基准不变）。
+      wxhost E2E 保持 8/8。
+19. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
       解引用层捕获）、dbg6.c（调试 probe3 自身）。

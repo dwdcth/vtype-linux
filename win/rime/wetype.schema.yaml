@@ -1,0 +1,53 @@
+# wetype.schema.yaml —— 微信拼音（rime-wetype 引擎方案）
+# 候选全部来自微信输入法引擎（wine wxhost），中文翻译只挂 wetype_translator。
+# 标点/英文数字走 rime 自带组件。
+
+schema:
+  schema_id: wetype
+  name: 微信拼音
+  version: "1.0"
+  author:
+    - vtype-linux
+  description: |
+    微信输入法引擎的 librime 接入。
+    需要 win/wxhost（WETYPE_WIN_ENGINE_DIR 或标准安装位）。
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 西文 ]
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punct
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+  translators:
+    - punct_translator
+    - wetype_translator
+
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcba
+  delimiter: " '"
+
+menu:
+  page_size: 9
+
+punctuator:
+  import_preset: default
+
+key_binder:
+  import_preset: default
+
+recognizer:
+  import_preset: default

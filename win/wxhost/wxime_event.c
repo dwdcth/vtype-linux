@@ -249,7 +249,11 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
         unsigned long long q1 = *(unsigned long long *)(iter + 8);
         int iter_ok = 1;
         if (q1) {
-            if (q1 < 0x10000 || q1 > 0x7fffffffffffULL || IsBadReadPtr((void *)q1, 0x28))
+            /* 精确校验引擎实际会解引用的字节：q1+0x20 处 8 字节、q2 处
+             * 8 字节。整块 IsBadReadPtr(q1,0x28) 会在小对象上越界误报
+             * （'h' 事件 iterator 曾被误拦 → 125 词表丢失）。 */
+            if (q1 < 0x10000 || q1 > 0x7fffffffffffULL ||
+                IsBadReadPtr((unsigned char *)q1 + 0x20, 8))
                 iter_ok = 0;
             else {
                 unsigned long long q2 = *(unsigned long long *)((unsigned char *)q1 + 0x20);

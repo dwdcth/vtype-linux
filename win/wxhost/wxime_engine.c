@@ -16,11 +16,20 @@
 #include "wxime_event.h"
 #include "wxime_event.h"
 
-/* ---------------- 日志 ---------------- */
+/* ---------------- 日志 ----------------
+ * serve 模式 stdout 是协议通道，所有日志必须走 stderr（由 wxhost_serve
+ * 置位 wxime_log_stderr_only）。 */
+static int g_log_stderr_only;
+
+void wxime_log_to_stderr(void) { g_log_stderr_only = 1; }
+
 void wxime_log(const char *fmt, ...)
 {
     va_list ap; va_start(ap, fmt);
-    printf("[wxhost] "); vprintf(fmt, ap); printf("\n"); fflush(stdout);
+    fprintf(g_log_stderr_only ? stderr : stdout, "[wxhost] ");
+    vfprintf(g_log_stderr_only ? stderr : stdout, fmt, ap);
+    fprintf(g_log_stderr_only ? stderr : stdout, "\n");
+    fflush(g_log_stderr_only ? stderr : stdout);
     va_end(ap);
 }
 
@@ -77,7 +86,7 @@ static long long cbA(void *a, void *b, void *c, void *d)
         char buf[201]; int n = 0;
         for (char *p = (char *)b; *p && n < 200; p++, n++) buf[n] = *p;
         buf[n] = 0;
-        if (n > 0) printf("[engine] %s\n", buf), fflush(stdout);
+        if (n > 0) fprintf(stderr, "[engine] %s\n", buf), fflush(stderr);
     }
     return 0;
 }

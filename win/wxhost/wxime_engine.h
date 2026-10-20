@@ -19,6 +19,7 @@ typedef struct wxime_session wxime_session;
 
 /* 统一日志（各模块共用，前缀 [wxhost]） */
 void wxime_log(const char *fmt, ...);
+void wxime_log_to_stderr(void);   /* serve 模式：stdout 是协议通道，日志全走 stderr */
 
 /* 加载 libwxhld.dll 并完成完整初始化序列：
  * initialize(InitInfo 真值) → register_client_cos_api(桩) → config_dict(26 词典

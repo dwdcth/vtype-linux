@@ -97,6 +97,8 @@ int wxhost_serve(wxime_engine *eng)
 {
     /* mingw 文本模式会把 \n 翻成 \r\n，插件精确匹配 line=="READY" 全失配 */
     _setmode(_fileno(stdout), _O_BINARY);
+    /* stdout 是协议通道：所有日志（含引擎回调）切到 stderr */
+    wxime_log_to_stderr();
 
     wxime_session *sess = wxime_session_open(eng);
     if (!sess) { printf("ERR\n"); fflush(stdout); return 1; }
@@ -140,8 +142,17 @@ int wxhost_serve(wxime_engine *eng)
                 Sleep(20);
             }
             if (dead) { printf("EMPTY\n"); fflush(stdout); continue; }
-            if (wait_candidates(WAIT_CAND, 1) > 0) reply_cand();
-            else { printf("EMPTY\n"); fflush(stdout); }
+            int n = wait_candidates(WAIT_CAND, 1);
+            /* 引擎语义：无新事件 = 候选未变化（如 nihao 的 a/o 补全键，
+             * 'h' 时的表即当前表）→ 沿用最近有效表。 */
+            if (n > 0) {
+                reply_cand();
+            } else if (g_snap_n > 0) {
+                fprintf(stderr, "[wxhost] B 无新事件，沿用上次候选 %d 个\n", g_snap_n);
+                reply_cand();
+            } else {
+                printf("EMPTY\n"); fflush(stdout);
+            }
             continue;
         }
 
