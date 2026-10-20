@@ -403,6 +403,15 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       词典跨进程持久（累积学习）。候选排序提升需多次强化（5 轮选第 5
       位词未见升位，具体阈值待测）。
     - VEH 崩溃日志格式升级：`AV rip=… (模块+偏移)` + 模块定位栈回溯。
+    - **用户热词 API 定序（wxime_set_user_hot_word，RVA 1ebd20）**：参数=
+      3×{char* ptr,int len} 结构（+0x00/+0x10/+0x20 三对，字段1 空），
+      返回 BOOL。serve 新命令 `HW <词> <拼音>`。**串序实证**：s2=词、
+      s3=拼音正确（返回 1 不污染候选）；**反序（s2=拼音）会污染候选管线
+      且跨进程持续**（清 `1/` 目录恢复）。写入热词 leveldb 成功且持久，
+      但基本候选排序不因此改变（5 次+重启无升位）——引擎基本排序由
+      系统 ngram 主导，热词大概率只影响联想/长句路径（与
+      wxime_get_most_likely_sequel 联想导出呼应）。官方 server import 54
+      个 wxime_*（无 add_user_history——那是 Android/Mac 宿主用）。
 20. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/

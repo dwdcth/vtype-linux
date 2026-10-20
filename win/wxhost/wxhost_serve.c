@@ -119,6 +119,17 @@ int wxhost_serve(wxime_engine *eng)
         }
         if (!strcmp(line, "SAVE")) { printf("OK\n"); fflush(stdout); continue; }
         if (!strcmp(line, "R")) { printf("UNCHANGED\n"); fflush(stdout); continue; }
+        if (line[0] == 'H' && line[1] == 'W' && line[1+1] == ' ') {
+            /* HW <串2> <串3>：设置用户热词（词/拼音顺序实验定） */
+            char *sp = strchr(line + 3, ' ');
+            if (!sp) { printf("ERR\n"); fflush(stdout); continue; }
+            *sp = 0;
+            const char *a = line + 3, *b = sp + 1;
+            int r = wxime_set_hot_word(eng, a, (int)strlen(a), b, (int)strlen(b));
+            printf(r == 1 ? "OK\n" : "ERR\n"); fflush(stdout);
+            continue;
+        }
+
         if (line[0] == 'H' && line[1] == 'K') { printf("ERR\n"); fflush(stdout); continue; }
 
         if (!strcmp(line, "C")) {

@@ -47,6 +47,10 @@ int wxime_select(wxime_session *sess, const void *cand_tlv, const char *word);
 /* 预热（可选，server 在挂 listener 后调用） */
 int wxime_warm_up(wxime_session *sess);
 
+/* 设置用户热词（学习强化入口；s2/s3 两串顺序语义见实现注释，实验定序） */
+int wxime_set_hot_word(wxime_engine *eng, const char *s2, int s2len,
+                       const char *s3, int s3len);
+
 /* 会话重置（C 命令）：销毁当前会话并重建（ESC 清不掉候选展示状态，
  * 唯一可靠的重置方式，同 Route W 断线重连语义）。listener 自动重挂。
  * 返回 0=成功。 */

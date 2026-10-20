@@ -412,6 +412,36 @@ int wxime_warm_up(wxime_session *s)
     return s->eng->warm_up ? s->eng->warm_up(s->handle) : 0;
 }
 
+/* ---------------- 用户热词（学习强化） ----------------
+ * wxime_set_user_hot_word（RVA 1ebd20，官方 server 实调）：参数=结构指针，
+ * 3×{char* ptr, int len} 对（+0x00/+0x08、+0x10/+0x18、+0x20/+0x28，每对
+ * 16B 步进），返回 BOOL。server 调用现场：字段1 空(NULL,0)，字段2/3 取自
+ * 词项对象 +0x28/+0x20 的两个 SSO 串。串序语义（词 vs 拼音）静态分析不
+ * 定，实验定：word 与 pinyin 两种顺序都试过（wxhost 命令 HW）。 */
+typedef int (*wxime_set_hotword_fn)(const void *hw);
+
+int wxime_set_hot_word(wxime_engine *eng, const char *s2, int s2len,
+                       const char *s3, int s3len)
+{
+    wxime_set_hotword_fn fn =
+        (wxime_set_hotword_fn)(uintptr_t)GetProcAddress(eng->dll,
+                                                        "wxime_set_user_hot_word");
+    if (!fn) return -1;
+    /* static：引擎内部异步消费可能性（同 select 的 sst 教训） */
+    static struct {
+        const char *p1; int l1; int pad1;
+        const char *p2; int l2; int pad2;
+        const char *p3; int l3; int pad3;
+        unsigned long long tail[4];
+    } hw;
+    memset(&hw, 0, sizeof hw);
+    hw.p2 = s2; hw.l2 = s2len;
+    hw.p3 = s3; hw.l3 = s3len;
+    int r = fn(&hw);
+    wxime_log("set_user_hot_word(s2=\"%s\",s3=\"%s\") -> %d", s2 ? s2 : "", s3 ? s3 : "", r);
+    return r;
+}
+
 int wxime_session_reset(wxime_session *s)
 {
     wxime_destroy_session_fn destroy =
