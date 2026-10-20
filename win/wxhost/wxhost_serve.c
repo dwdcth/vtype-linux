@@ -65,7 +65,12 @@ static int wait_candidates(ULONGLONG wait_ms, int early_exit_on_pending)
             if (*dn > 0) { have = 1; t_last = GetTickCount64(); }
         }
         if (have && early_exit_on_pending && stdin_pending()) break;
-        if (have && GetTickCount64() - t_last >= QUIET_MS) break;
+        if (have && GetTickCount64() - t_last >= QUIET_MS) {
+            /* 'h' 类候选事件间歇晚到：仅得组词表（无候选表）时延长一档 */
+            if (cand_n == 0 && comp_n > 0 && GetTickCount64() - t0 < wait_ms + 500)
+                continue;
+            break;
+        }
     }
     if (cand_n > 0) {
         g_snap_n = cand_n;
@@ -144,6 +149,12 @@ int wxhost_serve(wxime_engine *eng)
             int idx = atoi(line + 1);
             if (idx < 0 || idx >= g_snap_n || !g_snap[idx].tlv) {
                 fprintf(stderr, "[wxhost] S idx=%d 无凭证(快照n=%d) → ERR\n", idx, g_snap_n);
+                printf("ERR\n"); fflush(stdout);
+                continue;
+            }
+            /* completion 型候选引擎会抛 C++ 异常（实证），拒绝选取 */
+            if (!strcmp(g_snap[idx].type, "completion")) {
+                fprintf(stderr, "[wxhost] S idx=%d completion 型不可选 → ERR\n", idx);
                 printf("ERR\n"); fflush(stdout);
                 continue;
             }

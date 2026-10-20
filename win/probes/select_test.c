@@ -206,6 +206,10 @@ int main(int argc, char **argv)
     while(read_msg(buf,sizeof buf,&got,400,&t)==0) printf("  push %luB type=%d cands=%d\n",got,t,ncws);
     if (ncws > 0) {
         printf("cand[0] value(%d)=\"%.*s\" idlen=%d\n", cws[0].vlen, cws[0].vlen, cws[0].value, cws[0].idlen);
+        /* id 字节 dump：供 Route C 的 select id 逆向（对照 candidate_info TLV） */
+        printf("id hex:");
+        for (int i = 0; i < cws[0].idlen; i++) printf(" %02X", cws[0].id[i]);
+        printf("\n"); fflush(stdout);
     } else { printf("NO CANDIDATES captured!\n"); return 2; }
 
     if(mode==0){

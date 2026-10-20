@@ -182,6 +182,20 @@ static int cand_collect(void *ci, void *user)
         decode_candidate(ci, g_snap[idx].pinyin, sizeof g_snap[idx].pinyin,
                          g_snap[idx].word, sizeof g_snap[idx].word);
         g_snap[idx].tlv = *(void **)((unsigned char *)ci + WXIME_CI_TLV_OFF);
+        /* JSON 类型（records[0].type）：completion 型不可选（实证引擎抛异常） */
+        g_snap[idx].type[0] = 0;
+        const char *json = *(const char **)((unsigned char *)ci + WXIME_CI_JSON_OFF);
+        if (json > (const char *)0x10000 && !IsBadReadPtr((void *)json, 64)) {
+            const char *t = strstr(json, "\"type\":\"");
+            if (t) {
+                t += 9;
+                int n = 0;
+                while (t[n] && t[n] != '"' && n < (int)sizeof g_snap[idx].type - 1) {
+                    g_snap[idx].type[n] = t[n]; n++;
+                }
+                g_snap[idx].type[n] = 0;
+            }
+        }
     }
     return 1;   /* 继续迭代 */
 }

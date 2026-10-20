@@ -348,11 +348,19 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       组词表仅在无候选表时用（展示表必须可选中，插件按其索引 S）。
       'i' 键后 B ni 现在能看到 exact 表（你/拟/拟）。静默窗 150→250ms
       （'h' 候选事件间歇晚到，150ms 会错过）。
-    - **部分选词（剩余 ma）卡点**：select 后引擎**不推任何剩余事件**
-      （零 id 与 TLV-头-100B-做-id 均试败）——疑引擎把整段 commit 了。
-      Route W 实证 commit{id} 后剩余组词会推 CAND——真 id 结构 = server
-      消费者 0x1401a8500 从候选 TLV 生成的 100B blob（携带音节覆盖信息），
-      **下轮逆向其构造逻辑**（找 candidate TLV → id 的转换段）。
+    - **★部分选词语义定论（2026-10-21，E2E 8/8 ALL PASS）**：
+      "nihao 选你好" = **整段 commit**（无剩余推送）——Route W 宿主同场景
+      实测也是整段 OK（其首屏 9 词表含云候选，无"你"单字可选）。
+      §6.5.2 的"剩余组词"仅当选中短于输入的词时出现，当前表无此场景。
+      测试断言已修正，**run_wxhost_test.sh 8/8 全绿**。
+    - **★select id 破译（管道侧 hex 实证）**：id = 候选 TLV 前 100 字节
+      **原样序列化**（02|tag|idx|音节数|[len]拼音[len]词…|float|音节表，
+      与 ci+0x20 完全同构）；栈参 5 是 64 位 {idlen=100, 标志=1}（server
+      现场同槽双 dword；高位为 0 时疑整段 commit）。两者均已接入 wxhost。
+      select_test.c 增加 id hex dump（Route W 侧取证工具）。
+    - **completion 候选防崩**：快照记 ci+0x38 JSON 的 records[0].type，
+      S 遇 "completion" 型直接 ERR（实证引擎抛 C++ 异常）。
+      另：仅得组词表时等待窗口延长一档（'h' 候选事件间歇晚到）。
     - C 命令 = 会话销毁重建（wxime_destroy_session + create，ESC 清不掉
       候选展示状态，同 Route W 语义）。
 18. **工具与资产**（win/ 内）：

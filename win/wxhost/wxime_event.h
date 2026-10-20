@@ -16,6 +16,9 @@
 typedef struct {
     char pinyin[32];   /* UTF-8，如 "ni,hao" */
     char word[64];     /* UTF-8，如 "你好" */
+    char type[16];     /* 候选类型（ci+0x38 JSON 的 records[0].type）：
+                          "exact_match" 可选；"completion" 选取会引引擎
+                          C++ 异常（实证），S 必须拒绝 */
     void *tlv;         /* 引擎候选 TLV 对象（select 凭证） */
 } wxime_candidate;
 

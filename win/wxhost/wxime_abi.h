@@ -22,9 +22,12 @@ typedef int  (*wxime_process_input_fn)(void *session, const char *key,
                                        int len, void *ctx, int flag);
 typedef int  (*wxime_get_candidates_fn)(void *iter, void *cb, void *user);
 typedef int  (*wxime_select_candidate_fn)(void *session, const void *selctx,
-                                          int word_len, void *tlv, int idlen,
+                                          int word_len, void *tlv,
+                                          unsigned long long idlen_flag,
                                           void *id, int zero, void *out,
                                           int magic, void *desc);
+/* idlen_flag：低 32 位 = id 字节长（100），高 32 位 = 标志 1（server 现场
+ * 实证——高位为 0 时引擎按整段 commit，剩余组词不推）。 */
 typedef int  (*wxime_destroy_session_fn)(void *session);
 typedef int  (*wxime_reset_session_fn)(void *session);
 

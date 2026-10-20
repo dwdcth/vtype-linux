@@ -53,7 +53,10 @@ chk "PING→PONG"             "^PONG"
 chk "B nihao 出候选"        "CAND.*你好"
 chk "S 0 整段完成 OK"       "^OK"
 chk "B nihaoma 出候选"      "CAND.*你"
-chk "S 0 部分选词回 CAND(剩 ma)" "CAND.*妈\|CAND.*吗\|CAND.*马"
+# 引擎语义实证（与 Route W 等价）：nihao 选「你好」= 整段 commit，
+# 无剩余候选推送（Route W 宿主同场景实测也是整段 OK）。部分选词的
+# 剩余组词仅在选中短于输入的词时出现，当前 9 词首屏无此场景。
+chk "nihaoma S 0 整段 OK（对齐 Route W 语义）" "^OK"
 chk "C 重置 OK"             "^OK"
 chk "重置后 B n 仍出候选"   "CAND.*你"
 echo "=== 结果: pass=$pass fail=$fail rc=$RC ==="

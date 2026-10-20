@@ -347,11 +347,18 @@ int wxime_select(wxime_session *s, const void *cand_tlv, const char *word)
     /* ★sst/idbuf 必须 static（引擎异步消费：select 投任务后会话线程才读
      * sst——栈缓冲函数返回即回收，会话线程读到垃圾后事件分发线程静默
      * 死亡，之后所有按键零事件。probe3 用 static 恰好存活，实证此差异）。 */
-    /* id 暂传零缓冲（TLV 头部做 id 的试验无效：select 后引擎仍不推剩余
-     * 组词事件。真 id 结构 = server 消费者 0x1401a8500 从候选 TLV 生成
-     * 的 100B blob（携带音节覆盖信息），待逆向其构造逻辑后接入）。 */
+    /* ★id = 候选 TLV 前 100 字节原样序列化（管道侧 hex 实证，结构与
+     * ci+0x20 的 TLV 完全同构：02|tag|idx|音节数|[len]拼音[len]词…|float|
+     * 音节表）。栈参 5 是 64 位：低 32=idlen(100)，高 32=标志 1（server
+     * 现场 [rsp+0x20]={100,1} 同槽；传纯 int 100 高位为 0 → 引擎按整段
+     * commit，剩余组词不推——部分选词全靠这个标志）。 */
     static unsigned char idbuf[128];
     memset(idbuf, 0, sizeof idbuf);
+    int idlen = 0;
+    if (!IsBadReadPtr((void *)cand_tlv, 100)) {
+        idlen = 100;
+        memcpy(idbuf, cand_tlv, 100);
+    }
     static unsigned char sst[WXIME_SELECT_CTX_SIZE];
     long long outv[4] = { 0, 0, 0, 0 };
     memset(sst, 0, sizeof sst);
@@ -363,7 +370,8 @@ int wxime_select(wxime_session *s, const void *cand_tlv, const char *word)
     *(unsigned long long *)(sst + 0x38) = 0x6F;
 
     int sr = s->eng->select_candidate(s->handle, sst, wl, (void *)cand_tlv,
-                                      100, idbuf, 0, outv, WXIME_MAGIC_10, NULL);
+                                      ((unsigned long long)idlen) | (1ULL << 32),
+                                      idbuf, 0, outv, WXIME_MAGIC_10, NULL);
     wxime_log("select_candidate(word=\"%s\") -> %d", word, sr);
     return sr;
 }
