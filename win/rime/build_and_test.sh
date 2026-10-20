@@ -52,7 +52,11 @@ patch:
     - schema: wetype
 EOF
     find "$USER_DIR/build" -depth -delete 2>/dev/null || true
-    # 首次需手动部署：rime_deployer --build <user> /usr/share/rime-data
+    # 首次/清缓存后部署：rime_api_console 的 initialize(NULL) 用编译期
+    # 默认 shared_data_dir（非 /usr/share/rime-data）会 deploy failure，
+    # 用 rime_deployer 显式部署一次（实测可靠）
+    LD_LIBRARY_PATH="$RIME_DIR/build/lib" \
+        "$RIME_DIR/build/bin/rime_deployer" --build "$USER_DIR" /usr/share/rime-data
     LD_LIBRARY_PATH="$RIME_DIR/build/lib" \
     WETYPE_WIN_ENGINE_DIR="$ENGINE_DIR" WINEDEBUG=-all \
         sh -c 'printf "nihao\n1\n" | "$0"' "$RIME_DIR/build/bin/rime_api_console"

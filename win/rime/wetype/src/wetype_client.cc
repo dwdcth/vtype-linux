@@ -68,6 +68,7 @@ bool WeTypeClient::Start(const std::string &host_path,
     if (!ReadReply(&line, 1000)) continue;
     if (line == "READY") {
       fprintf(stderr, "[wetype] wxhost READY\n");
+      ready_.store(true, std::memory_order_release);
       return true;
     }
   }
@@ -77,6 +78,7 @@ bool WeTypeClient::Start(const std::string &host_path,
 }
 
 void WeTypeClient::Stop() {
+  if (starter_.joinable()) starter_.join();
   if (in_) { SendLine("Q"); fclose(in_); in_ = nullptr; }
   if (out_) { fclose(out_); out_ = nullptr; }
   if (child_pid_ > 0) {
@@ -92,16 +94,27 @@ void WeTypeClient::Stop() {
   }
 }
 
-bool WeTypeClient::EnsureStarted() {
-  if (IsAlive()) return true;
+void WeTypeClient::EnsureStartedAsync() {
+  if (IsAlive() || starting_.load()) return;
+  // 进程僵死（已退出未收割）先同步清理（waitpid 非阻塞，微秒级）
   int status = 0;
   if (child_pid_ > 0 && waitpid(child_pid_, &status, WNOHANG) != 0) {
     child_pid_ = -1;
     if (in_) { fclose(in_); in_ = nullptr; }
     if (out_) { fclose(out_); out_ = nullptr; }
+    ready_.store(false);
   }
-  if (child_pid_ < 0) return Start(host_path_, engine_dir_);
-  return true;
+  if (child_pid_ > 0) return;   // 活进程但未 READY：启动线程仍在等
+  starting_.store(true);
+  if (starter_.joinable()) starter_.join();
+  starter_ = std::thread([this] {
+    if (Start(host_path_, engine_dir_)) {
+      fprintf(stderr, "[wetype] wxhost 后台启动成功\n");
+    } else {
+      fprintf(stderr, "[wetype] wxhost 后台启动失败，稍后重试\n");
+    }
+    starting_.store(false);
+  });
 }
 
 bool WeTypeClient::SendLine(const std::string &line) {
@@ -145,7 +158,8 @@ bool WeTypeClient::ReadReply(std::string *line, int timeout_ms) {
 bool WeTypeClient::Query(const std::string &keys,
                          std::vector<std::pair<std::string, std::string>> *out) {
   out->clear();
-  if (!EnsureStarted()) return false;
+  EnsureStartedAsync();
+  if (!IsAlive()) return false;   // 引擎启动中/失败：本轮快速放弃
   if (!SendLine("B " + keys)) return false;
   // 候选等待 = wxhost 内部静默窗 250ms + 引擎处理，宽限 3s
   std::string line;
@@ -172,13 +186,15 @@ bool WeTypeClient::Query(const std::string &keys,
 }
 
 bool WeTypeClient::Reset() {
-  if (!EnsureStarted() || !SendLine("C")) return false;
+  EnsureStartedAsync();
+  if (!IsAlive() || !SendLine("C")) return false;
   std::string line;
   return ReadReply(&line, 1000) && line == "OK";
 }
 
 bool WeTypeClient::Select(int idx) {
-  if (!EnsureStarted() || !SendLine("S " + std::to_string(idx))) return false;
+  EnsureStartedAsync();
+  if (!IsAlive() || !SendLine("S " + std::to_string(idx))) return false;
   std::string line;
   // S 的应答：OK（整段）/ CAND（剩余）/ ERR；都算完成（学习为目的）
   return ReadReply(&line, 2000);

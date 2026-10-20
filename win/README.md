@@ -440,7 +440,16 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       无泄漏，fcitx5/rime 常驻场景可用。
     - `win/rime/build_and_test.sh`：librime+wetype 插件可复现构建
       （librime 1.17 检出、boost.regex 自编、插件同步、cmake、可选
-      --test 跑 E2E），替代此前手工 /tmp 步骤。
+      --test 跑 E2E，含 rime_deployer 首次自动部署），替代此前手工
+      /tmp 步骤。
+    - **wxhost 崩溃自动恢复（rime 插件）**：Query/Reset/Select 内部改
+      非阻塞 EnsureStartedAsync（后台线程重启，引擎 init 15-20s 期间
+      快速放弃不卡前端 UI 线程）；IsAlive 修为 waitpid WNOHANG 探测
+      （kill -9 后 ready_/pid 陈旧值曾致自愈永不触发）。单测六步全绿：
+      Start→查询→击杀→死后查询 0 秒返回→后台恢复→恢复后查询 71 候选
+      首位你好。测试方法坑记录：pgrep -f 会匹配测试块自身（自杀）、
+      每个 wine 实例配独立 wineserver（孤儿 winedevice 污染后续启动，
+      清场要连 wineserver/winedevice 一起清）。
 22. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/

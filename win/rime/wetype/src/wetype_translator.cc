@@ -55,7 +55,9 @@ an<Translation> WeTypeTranslator::Query(const string &input,
   if (!segment.HasTag("abc"))
     return nullptr;
 
-  // 惰性启动（wxhost 初始化含 5s 词典等待，不能阻塞会话创建）
+  // 惰性启动：首次同步 Start（一次性，15-20s；rime 会话创建期可接受）。
+  // 崩溃恢复不走这里——Query/Select 内部用非阻塞 EnsureStartedAsync，
+  // 引擎重启期间快速放弃（不卡前端 UI 线程），就绪后自愈。
   if (!started_) {
     std::string host, engine_dir;
     FindHostPaths(&host, &engine_dir);
