@@ -60,3 +60,5 @@ common-phrases.bin
 /.d2.txt
 /.tmp-rea-*
 /win/.ref/
+/win/tools/.*.json
+/win/tools/.*.txt
