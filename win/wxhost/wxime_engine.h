@@ -21,6 +21,11 @@ typedef struct wxime_session wxime_session;
 void wxime_log(const char *fmt, ...);
 void wxime_log_to_stderr(void);   /* serve 模式：stdout 是协议通道，日志全走 stderr */
 
+/* 无副作用可读检查（替代 IsBadReadPtr）：wine 的 IsBadReadPtr 对部分坏
+ * 指针自身 AV（组词元素=词串字节值时中招），异常穿透杀死引擎分发线程。
+ * VirtualQuery 纯查询，逐页验 MEM_COMMIT 且非 PAGE_NOACCESS/GUARD。 */
+int wx_readable(const void *p, size_t n);
+
 /* 加载 libwxhld.dll 并完成完整初始化序列：
  * initialize(InitInfo 真值) → register_client_cos_api(桩) → config_dict(26 词典
  * + 版本串门) → 等待用户词典异步构建(5s)。engine_dir 为引擎目录（BuildIn/ 所在），

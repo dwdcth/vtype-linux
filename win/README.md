@@ -388,7 +388,22 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       c) **非终结键无事件 = 候选不变**（nihao 的 a/o 键引擎不推事件）：
          B 应答 EMPTY 时沿用最近有效表（符合引擎语义，S 索引基准不变）。
       wxhost E2E 保持 8/8；修复后 Rime E2E（nihao→你好）三连发稳定。
-19. **工具与资产**（win/ 内）：
+19. **★wine IsBadReadPtr 自身 AV 与词频学习通路（2026-10-21）**：
+    - **wine 的 IsBadReadPtr 对部分坏指针自身崩溃**：组词事件容器偶解出
+      垃圾元素指针（值=词串字节，如 "art[0]"），parse_comp_words 用
+      IsBadReadPtr 防御时在 wine kernel32+0x20aad 内部 AV，异常穿透
+      杀死引擎事件分发线程 → 之后学习/事件全停（demo 时代"非致命崩"
+      的又一真凶）。栈回溯定位：VEH 遍历模块表 + CaptureStackBackTrace
+      （GetModuleHandle 差值法会算出超模块大小的假偏移，勿用）。
+      修复：全部 15 处 IsBadReadPtr 换成 `wx_readable()`（VirtualQuery
+      逐页验 MEM_COMMIT+非 NOACCESS/GUARD，纯查询零副作用）。
+    - **词频学习通路打通**：select → 引擎异步 → 用户词典 LevelDB 落盘
+      （引擎根下 `1/v5/<时间戳>/*.ldb|log`，热词库 `1/user_hot_word/`）。
+      wx_readable 修复后 select 不再杀学习线程，log 文件随选词增长；
+      词典跨进程持久（累积学习）。候选排序提升需多次强化（5 轮选第 5
+      位词未见升位，具体阈值待测）。
+    - VEH 崩溃日志格式升级：`AV rip=… (模块+偏移)` + 模块定位栈回溯。
+20. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
       解引用层捕获）、dbg6.c（调试 probe3 自身）。

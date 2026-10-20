@@ -10,18 +10,54 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
+#include <psapi.h>
 #include "wxime_engine.h"
 #include "wxime_event.h"
 #include "wxhost_serve.h"
 
-/* VEH 崩溃捕获（clang PE 无 SEH __try） */
+/* 模块定位：地址 → "模块名+偏移"（找不到返回 "?"） */
+static void locate_addr(unsigned long long addr, char *out, int cap)
+{
+    HMODULE mods[256]; DWORD nmods = 0;
+    out[0] = '?'; out[1] = 0;
+    if (!EnumProcessModules(GetCurrentProcess(), mods, sizeof mods, &nmods))
+        return;
+    for (DWORD i = 0; i < nmods / sizeof(HMODULE); i++) {
+        MODULEINFO mi;
+        if (!GetModuleInformation(GetCurrentProcess(), mods[i], &mi, sizeof mi))
+            continue;
+        unsigned long long b = (unsigned long long)mi.lpBaseOfDll;
+        if (addr >= b && addr < b + mi.SizeOfImage) {
+            char name[64];
+            DWORD L = GetModuleBaseNameA(GetCurrentProcess(), mods[i], name, sizeof name - 1);
+            name[L] = 0;
+            snprintf(out, cap, "%s+%llx", name, addr - b);
+            return;
+        }
+    }
+}
+
+/* VEH 崩溃捕获（clang PE 无 SEH __try）。日志走 stderr（serve 下 stdout
+ * 是协议通道）；定位 rip 所属模块并栈回溯定位调用链（学习路径曾把词串
+ * 字节当指针传 kernel32，fault 地址即数据内容）。 */
 static LONG WINAPI crash_veh(PEXCEPTION_POINTERS ep)
 {
     if (ep->ExceptionRecord->ExceptionCode != 0xC0000005) return EXCEPTION_CONTINUE_SEARCH;
-    printf("[wxhost] !! AV rip=%llu fault=%llu\n",
-           (unsigned long long)ep->ContextRecord->Rip,
-           (unsigned long long)ep->ExceptionRecord->ExceptionInformation[1]);
-    fflush(stdout);
+    unsigned long long rip = (unsigned long long)ep->ContextRecord->Rip;
+    char where[80];
+    locate_addr(rip, where, sizeof where);
+    fprintf(stderr, "[wxhost] !! AV rip=%llx (%s) fault=%llx\n",
+            rip, where,
+            (unsigned long long)ep->ExceptionRecord->ExceptionInformation[1]);
+    void *retaddrs[24];
+    WORD ndepth = CaptureStackBackTrace(0, 24, retaddrs, NULL);
+    for (WORD d = 0; d < ndepth; d++) {
+        unsigned long long a = (unsigned long long)retaddrs[d];
+        char w2[80];
+        locate_addr(a, w2, sizeof w2);
+        fprintf(stderr, "[wxhost]   栈[%2d] %llx (%s)\n", d, a, w2);
+    }
+    fflush(stderr);
     return EXCEPTION_EXECUTE_HANDLER;
 }
 

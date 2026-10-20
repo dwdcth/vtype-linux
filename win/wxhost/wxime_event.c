@@ -53,12 +53,12 @@ static void scan_utf8(unsigned char *s, int len, const char *path)
 static int parse_comp_words(unsigned char *ev, wxime_candidate *out, int max)
 {
     unsigned long long arr = *(unsigned long long *)(ev + 0x18);
-    if (arr <= 0x10000 || arr >= 0x7fffffffffffULL || IsBadReadPtr((void *)arr, 0x120))
+    if (arr <= 0x10000 || arr >= 0x7fffffffffffULL || !wx_readable((void *)arr, 0x120))
         return 0;
     int n = 0;
     for (int i = 0; i < 40 && n < max; i++) {
         unsigned long long ce = *(unsigned long long *)((unsigned char *)arr + 0x20 + i * 8);
-        if (ce <= 0x10000 || ce >= 0x7fffffffffffULL || IsBadReadPtr((void *)ce, 0x30))
+        if (ce <= 0x10000 || ce >= 0x7fffffffffffULL || !wx_readable((void *)ce, 0x30))
             continue;
         unsigned char *el = (unsigned char *)ce;
         /* 词 SSO：+0x00（首元素）或 +0x10（带 tagged 元数据头的元素）。
@@ -96,14 +96,14 @@ static void dump_event_texts(unsigned char *ev)
     /* b+0x18 → 候选容器：+0x20 起指针数组，每元素 +0x00/+0x10 内联 SSO 词。
      * 完整扫容器前 0x200（数组元素可能十几个）。 */
     unsigned long long arr = *(unsigned long long *)(ev + 0x18);
-    if (arr > 0x10000 && arr < 0x7fffffffffffULL && !IsBadReadPtr((void *)arr, 0x200)) {
+    if (arr > 0x10000 && arr < 0x7fffffffffffULL && wx_readable((void *)arr, 0x200)) {
         for (int i = 0; i < 40; i++) {
             unsigned long long ce = *(unsigned long long *)((unsigned char *)arr + 0x20 + i * 8);
-            if (ce <= 0x10000 || ce >= 0x7fffffffffffULL || IsBadReadPtr((void *)ce, 0x20)) continue;
+            if (ce <= 0x10000 || ce >= 0x7fffffffffffULL || !wx_readable((void *)ce, 0x20)) continue;
             char path[32]; snprintf(path, sizeof path, "容器[%d]", i);
             scan_utf8((unsigned char *)ce, 0x20, path);
             /* 元素全貌 hex（找 TLV/拼音/序号字段） */
-            if (i < 3 && !IsBadReadPtr((void *)ce, 0x40)) {
+            if (i < 3 && wx_readable((void *)ce, 0x40)) {
                 unsigned char *x = (unsigned char *)ce;
                 for (int row = 0; row < 0x40; row += 16) {
                     char asc[17];
@@ -124,17 +124,17 @@ static void dump_event_texts(unsigned char *ev)
     }
     for (int off = 0x08; off <= 0x88; off += 8) {
         unsigned long long p = *(unsigned long long *)(ev + off);
-        if (p <= 0x10000 || p >= 0x7fffffffffffULL || IsBadReadPtr((void *)p, 0x40)) continue;
+        if (p <= 0x10000 || p >= 0x7fffffffffffULL || !wx_readable((void *)p, 0x40)) continue;
         char p1[16]; snprintf(p1, sizeof p1, "L1+%x", off);
         scan_utf8((unsigned char *)p, 0x40, p1);
         for (int off2 = 0; off2 <= 0x38; off2 += 8) {
             unsigned long long p2 = *(unsigned long long *)((unsigned char *)p + off2);
-            if (p2 <= 0x10000 || p2 >= 0x7fffffffffffULL || IsBadReadPtr((void *)p2, 0x40)) continue;
+            if (p2 <= 0x10000 || p2 >= 0x7fffffffffffULL || !wx_readable((void *)p2, 0x40)) continue;
             char p2s[32]; snprintf(p2s, sizeof p2s, "L1+%x->L2+%x", off, off2);
             scan_utf8((unsigned char *)p2, 0x40, p2s);
             for (int off3 = 0; off3 <= 0x38; off3 += 8) {
                 unsigned long long p3 = *(unsigned long long *)((unsigned char *)p2 + off3);
-                if (p3 <= 0x10000 || p3 >= 0x7fffffffffffULL || IsBadReadPtr((void *)p3, 0x40)) continue;
+                if (p3 <= 0x10000 || p3 >= 0x7fffffffffffULL || !wx_readable((void *)p3, 0x40)) continue;
                 char p3s[48]; snprintf(p3s, sizeof p3s, "L1+%x->L2+%x->L3+%x", off, off2, off3);
                 scan_utf8((unsigned char *)p3, 0x40, p3s);
             }
@@ -157,7 +157,7 @@ static int decode_candidate(void *ci, char *py, int py_cap, char *word, int w_ca
     py[0] = word[0] = 0;
     if (!tlv || tlv < (unsigned char *)0x10000 || tlv > (unsigned char *)0x7fffffffffffULL)
         return 0;
-    if (IsBadReadPtr(tlv, 0x40)) return 0;
+    if (!wx_readable(tlv, 0x40)) return 0;
     unsigned char *p = tlv + WXIME_TLV_STR_BASE;
     int got = 0;
     for (int s = 0; s < 4 && p < tlv + 0x40; s++) {
@@ -185,7 +185,7 @@ static int cand_collect(void *ci, void *user)
         /* JSON 类型（records[0].type）：completion 型不可选（实证引擎抛异常） */
         g_snap[idx].type[0] = 0;
         const char *json = *(const char **)((unsigned char *)ci + WXIME_CI_JSON_OFF);
-        if (json > (const char *)0x10000 && !IsBadReadPtr((void *)json, 64)) {
+        if (json > (const char *)0x10000 && wx_readable((void *)json, 64)) {
             const char *t = strstr(json, "\"type\":\"");
             if (t) {
                 t += 9;
@@ -209,7 +209,7 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
     fprintf(stderr, "[wxhost] listener 入口: a=%p b=%p\n", a, b);
     fflush(stderr);
     unsigned char *ev = (unsigned char *)b;
-    if (!ev || IsBadReadPtr(ev, 0x98)) { InterlockedDecrement(&g_listener_busy); return 0; }
+    if (!ev || !wx_readable(ev, 0x98)) { InterlockedDecrement(&g_listener_busy); return 0; }
 
     /* 类型门：候选更新事件（双接口自引用 + payload 非空）才可枚举 */
     int is_cand = (*(void **)(ev + WXIME_EVENT_SELFREF_OFF) == b &&
@@ -251,7 +251,7 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
         unsigned long long q1 = *(unsigned long long *)(iter + 8);
         int iter_ok = 1;
         if (q1 && (q1 < 0x10000 || q1 > 0x7fffffffffffULL ||
-                   IsBadReadPtr((unsigned char *)q1 + 0x20, 8)))
+                   !wx_readable((unsigned char *)q1 + 0x20, 8)))
             iter_ok = 0;
         if (!iter_ok) {
             fprintf(stderr, "[wxhost] listener: iterator 致命形态"

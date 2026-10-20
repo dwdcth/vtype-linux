@@ -79,10 +79,32 @@ static void *s_fake_vtable[16];
 static void *s_inner_vtable[16];
 static void *s_fake_obj[4];
 
+/* 无副作用可读检查：见 wxime_engine.h 注释（wine IsBadReadPtr 自身 AV 教训） */
+int wx_readable(const void *p, size_t n)
+{
+    if (!p) return 0;
+    unsigned long long a = (unsigned long long)p;
+    unsigned long long end = a + (unsigned long long)n;
+    if (end < a) return 0;               /* 地址回绕 */
+    while (a < end) {
+        MEMORY_BASIC_INFORMATION mbi;
+        if (!VirtualQuery((void *)a, &mbi, sizeof mbi)) return 0;
+        if (mbi.State != MEM_COMMIT) return 0;
+        DWORD prot = mbi.Protect & 0xFF;
+        if (prot == PAGE_NOACCESS || prot == 0 || (mbi.Protect & PAGE_GUARD))
+            return 0;
+        unsigned long long region_end =
+            (unsigned long long)mbi.BaseAddress + mbi.RegionSize;
+        if (region_end <= a) return 0;   /* 防御：避免死循环 */
+        a = region_end;
+    }
+    return 1;
+}
+
 /* ---------------- 引擎日志回调（InitInfo+0x00，loguru sink） ---------------- */
 static long long cbA(void *a, void *b, void *c, void *d)
 {
-    if (b && !IsBadReadPtr(b, 200)) {
+    if (b && wx_readable(b, 200)) {
         char buf[201]; int n = 0;
         for (char *p = (char *)b; *p && n < 200; p++, n++) buf[n] = *p;
         buf[n] = 0;
@@ -364,7 +386,7 @@ int wxime_select(wxime_session *s, const void *cand_tlv, const char *word)
     static unsigned char idbuf[128];
     memset(idbuf, 0, sizeof idbuf);
     int idlen = 0;
-    if (!IsBadReadPtr((void *)cand_tlv, 100)) {
+    if (wx_readable((void *)cand_tlv, 100)) {
         idlen = 100;
         memcpy(idbuf, cand_tlv, 100);
     }
