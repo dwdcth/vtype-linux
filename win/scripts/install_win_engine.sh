@@ -42,8 +42,12 @@ else
   echo "prefix 已存在，保留不动: $DEST/prefix"
 fi
 
-# 宿主（覆盖旧版）
+# 宿主（覆盖旧版）：
+#   wetype_win_host.exe —— Route W（管道翻译，fcitx5 插件 Windows 路线）
+#   wxhost.exe          —— Route C（进程内直调引擎，rime 插件后端，
+#                          win/rime 的 WeTypeClient 默认在本目录找它）
 install -m 755 "$HOST_BIN" "$DEST/wetype_win_host.exe"
+install -m 755 "$ROOT/win/bin/wxhost.exe" "$DEST/wxhost.exe"
 
 # 云栈：入口 + 模块（与 arm64 安装同构；wine 路线不需要 cloud_proxy.py/QEMU 代理）
 install -m 755 "$ROOT/scripts/wetype-cloud.py" "$DEST/wetype-cloud.py"
@@ -52,9 +56,12 @@ cp "$ROOT"/cloud/*.py "$DEST/cloud/"
 rm -f "$DEST/cloud/cloud_net.c" 2>/dev/null || true
 
 echo "已安装到 $DEST"
-echo "插件启用方式（二选一）："
+echo "fcitx5 插件启用方式（二选一）："
 echo "  1) 显式: export WETYPE_WIN_ENGINE_DIR=$DEST 后重启 fcitx5"
 echo "  2) 兜底: 未装 ARM64 引擎时插件自动选用 win64 目录"
+echo "rime 插件（rime-wetype，用微信引擎模型词库）："
+echo "  构建: sh win/rime/build_and_test.sh（含 E2E）"
+echo "  会话: 默认也在 $DEST 找 wxhost.exe，无需另设环境变量"
 echo "云功能（与引擎解耦，照常可用）："
 echo "  python3 $DEST/wetype-cloud.py pair --name 'Linux 输入法' --code 关联码"
 echo "  python3 $DEST/wetype-cloud.py clipboard enable"

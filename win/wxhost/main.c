@@ -69,6 +69,10 @@ int main(int argc, char **argv)
     int serve = argc > 1 && !strcmp(argv[1], "--serve");
     const char *engine_dir = serve ? (argc > 2 ? argv[2] : ".")
                                    : (argc > 1 ? argv[1] : ".");
+    /* cwd 钉到引擎目录：引擎的用户词典（Tencent\WeType\ImeDir、1/）走
+     * 相对路径——不钉的话学习数据散落在调用方 cwd（fcitx5/rime 前端
+     * cwd 各异 → 学习分裂）。 */
+    SetCurrentDirectoryA(engine_dir);
     AddVectoredExceptionHandler(1, crash_veh);
 
     wxime_engine *eng = wxime_open(engine_dir, "wxhost");
