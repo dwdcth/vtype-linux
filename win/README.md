@@ -282,16 +282,21 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       （跳过当时就失败的 edit 和毁文件的补丁）完整重建。
       **教训（已写进指南坑 10）：改探针 C 源只用 Edit 工具或整文件重写。**
 15. **下一站**（路线 C 收尾→产品化）：
-    - **选词**：server IAT 全表在 `win/ref/server_iat.txt`（63 个 wxime_*）。
-      `wxime_select_candidate`（RVA 1eae50，9 参转发到 0x1801dc830）的 server
-      调用点 0x1401a3ceb：arg2 = 0x20 字节候选描述符数组（{char* 拼音串(SSO),
-      int@+8, word@+0xc, char* 词串(SSO), int@+0x18}，从 0x130 字节源条目压出），
-      arg3 = count，尾参 0x10 魔数与 process_input 同族。
-      `wxime_select_default_candidate`（RVA 1eaed0）调用点 0x1401a4001：
-      `(session, [cmd+0x20]数组, [cmd+0x28]int(疑索引), &out{int,qword},
-      0x10, ptr, count)`。Route W 已知 commit{id} 语义，C 侧的 id 疑在
-      candidate_info TLV 头部（我们解码从 +0x1C 起，0x00..0x1C 未读）。
-      打通"选词→上屏→剩余音节组词"即完整 IME 语义。
+    - **★select 已打通（2026-10-21 深夜，probe3 实测）**：
+      ABI（dbg8 于 server 0x1401a3ceb 健康现场 dump）：`rcx=session rdx=&sst
+      r8d=词字节长 r9=候选TLV指针`，栈参 `{idlen=100,int 1} id指针 0 &out
+      0x10 desc(NULL 可——server 传的 desc 实测已是 ABABAB 释放内存，引擎
+      不读)`。sst = 0x40 字节 {+0x00 SSO 词串, +0x10 size, +0x18 0xF,
+      +0x20 TLV指针, +0x30 idlen=100, +0x38 0x6F}。**r9 = 候选 TLV 对象
+      指针**（`02|tag4B|序号 + [len]拼音 + [len]词`，与 ci+0x20 同构——
+      server 把引擎给的 TLV 原样传回，id 内容无需构造，零缓冲即可）。
+      主线程调用**返回 1 成功**，会话存活（后续按键照常处理），select 触发
+      的事件负载里实证携带上屏文本（sel+b 链二级解引用出 "你好" UTF-8）。
+      **死锁教训**：select 绝不能在 LISTENER（引擎异步分发线程）里调——
+      它向会话线程投任务并等待 → 必死锁（实测挂死）；必须主线程调
+      （TLV 指针从 cand_cb 枚举时捕获，'a'/'o' 等非候选事件后仍存活）。
+      负载结构：事件 b 的指针字段两级解引用可见 {拼音音节记录(01"n"01"i"),
+      候选词表("你好"…)}——精确提取 emit 文本的偏移下一轮定型。
     - 把 probe3 演进为正式宿主（对照 Route W 的 wetype_win_host.c 行协议），
       二者共存供上游选择。
     - 每键后引擎异步线程仍有 fault=0x1 tag 崩（不致命，主流程全过）——疑

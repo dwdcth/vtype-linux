@@ -145,6 +145,16 @@ static int g_cand_n;
 static void *g_ev_b;               /* 最近事件对象（listener 存，主线程消费） */
 static volatile long g_ev_new;
 static volatile long g_ev_ok;      /* 事件带有效 iterator（b+0x10 自引用 + b+0x08 非空） */
+/* 选词实验：cand_cb 捕获候选[0] 的 TLV 指针与词串；listener 枚举完成后
+ * （同上下文，TLV 必存活）按 g_want_select 标志调 wxime_select_candidate。
+ * ABI 来自 dbg8 于 server 调用点 0x1401a3ceb 的健康现场 dump：
+ *   (session, rdx=&{SSO 词串, +0x20→TLV, +0x30 idlen}, 词字节长, TLV指针,
+ *    int idlen, id指针, 0, &out, 0x10, desc(NULL 即可——server 传的已释放)) */
+static void *g_sel_tlv;
+static char g_sel_word[64];
+static int g_sel_wordlen;
+static volatile long g_want_select;
+static volatile long g_just_selected;   /* 主线程 select 置 1，下一事件做负载扫描 */
 /* 迭代协议（反汇编 0x1801e2d30 全破译）：
  *   get_candidates(iter, cb, ctx) 同步循环调 cb(ci, ctx)，
  *   cb 返回 BOOL：非零=继续、零=停；get_candidates 本身返回 1=成功 0=失败
@@ -172,6 +182,14 @@ static int cand_cb(void *ci, void *ctx2, void *c2, void *d2)
         }
     }
     if (g_cand_n < 8) slog("候选[%d]: py=\"%s\" word=\"%s\"", g_cand_n, py, word);
+    if (g_cand_n == 0 && tlv) {
+        g_sel_tlv = tlv;
+        int wl = (int)strlen(word);
+        if (wl > 63) wl = 63;
+        memcpy(g_sel_word, word, (size_t)wl);
+        g_sel_word[wl] = 0;
+        g_sel_wordlen = wl;
+    }
     if (g_cand_n < 2 && json && !IsBadReadPtr(json, 32)) {
         char jb[400]; int n = 0;
         while (json[n] && n < 399) { jb[n] = json[n]; n++; }
@@ -221,6 +239,26 @@ static long long cbListener(void *a, void *b, void *c, void *d, void *e, void *f
         g_ev_ok = (*(void **)((unsigned char *)b + 0x10) == b &&
                    *(void **)((unsigned char *)b + 0x08) != NULL) ? 1 : 0;
         slog("事件类型判定: %s", g_ev_ok ? "候选更新(可枚举)" : "其他(跳过)");
+        /* select 后的事件负载扫描：沿 b 的指针字段两级解引用找上屏文本 */
+        if (g_just_selected) {
+            g_just_selected = 0;
+            slog(">>> select 后事件负载扫描");
+            unsigned char *bb = (unsigned char *)b;
+            for (int off = 0x08; off <= 0x88; off += 8) {
+                unsigned long long p = *(unsigned long long *)(bb + off);
+                if (p > 0x10000 && p < 0x7fffffffffffULL && !IsBadReadPtr((void *)p, 0x40)) {
+                    dump_evobj("sel+b", (void *)p, 0x40);
+                    /* 二级：负载对象的指针字段 */
+                    unsigned char *po = (unsigned char *)p;
+                    for (int off2 = 0; off2 <= 0x38; off2 += 8) {
+                        unsigned long long p2 = *(unsigned long long *)(po + off2);
+                        if (p2 > 0x10000 && p2 < 0x7fffffffffffULL && !IsBadReadPtr((void *)p2, 0x20)) {
+                            dump_evobj("sel+b+2", (void *)p2, 0x20);
+                        }
+                    }
+                }
+            }
+        }
         /* 枚举时机对比实验结论：门内事件在 listener 里同步枚举可得完整候选表
          * （dump 时代 4 个候选）；推迟 300ms 只剩顶级候选（深层 iterator 被放）。
          * 异步线程同步重入的崩 = 对非候选事件误枚举，不是重入本身。 */
@@ -236,6 +274,9 @@ static long long cbListener(void *a, void *b, void *c, void *d, void *e, void *f
                 int gr = get_cands((unsigned char *)b + 0x90, (void *)cand_cb, NULL);
                 slog("get_candidates -> %d（回调 %d 次）", gr, g_cand_n);
                 g_ev_new = 0;   /* 主线程兜底不再重复枚举 */
+                /* 注意：select 不能在本线程调——listener 跑在引擎异步分发线程，
+                 * select_candidate 会向会话线程投任务并等待 → 死锁（实测挂死）。
+                 * server 也是从 IPC 线程调的。主线程流程负责选词。 */
             }
         }
     }
@@ -488,6 +529,37 @@ int main(int argc, char **argv)
         slog("  -> %d", pr);
         Sleep(300);
         /* 候选枚举已在 listener 内同步完成（门内事件），主线程无需再做。 */
+    }
+    /* ★主线程选词实验（Route W 同款流程：打完 nihao → 选候选[0] 你好）。
+     * TLV 是 listener 枚举时捕获的堆指针；'a'/'o' 不产生候选事件，理论上
+     * 最近一次候选 TLV（h 事件）仍存活。 */
+    if (g_sel_tlv) {
+        static unsigned char sst[0x40];
+        static unsigned char idbuf[128];
+        memset(sst, 0, sizeof sst);
+        memset(idbuf, 0, sizeof idbuf);
+        memcpy(sst, g_sel_word, (size_t)g_sel_wordlen);
+        *(unsigned long long *)(sst + 0x10) = g_sel_wordlen;  /* string size */
+        *(unsigned long long *)(sst + 0x18) = 0xF;            /* SSO cap */
+        *(void **)(sst + 0x20) = g_sel_tlv;
+        *(unsigned long long *)(sst + 0x30) = 100;
+        *(unsigned long long *)(sst + 0x38) = 0x6F;
+        long long outv[4]; memset(outv, 0, sizeof outv);
+        int (*sel_cand)(void *, void *, int, void *, int, void *, int, void *, int, void *) =
+            (int (*)(void *, void *, int, void *, int, void *, int, void *, int, void *))(uintptr_t)
+            GetProcAddress(GetModuleHandleA("libwxhld.dll"), "wxime_select_candidate");
+        g_just_selected = 1;
+        slog("select_candidate(word=\"%s\" len=%d) ...", g_sel_word, g_sel_wordlen);
+        int sr = sel_cand(sess, sst, g_sel_wordlen, g_sel_tlv, 100, idbuf, 0, outv, 0x10, NULL);
+        slog("select_candidate -> %d out={%llx,%llx}", sr,
+             (unsigned long long)outv[0], (unsigned long long)outv[1]);
+        Sleep(500);
+        /* 选词后再打一键验证会话活性（Route W 的 aliveness 检查） */
+        slog("input 'm'（选词后活性验证）");
+        memset(inctx, 0, 0x100);
+        int pr2 = process_input(sess, "m", 1, inctx, 0x10);
+        slog("  -> %d", pr2);
+        Sleep(500);
     }
     Sleep(2000);
     slog("done");

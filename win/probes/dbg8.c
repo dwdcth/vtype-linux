@@ -77,8 +77,8 @@ int main(void)
                 GetThreadContext(t, &ctx);
                 unsigned long long p = ctx.Rip - 1;
                 if (p == BP_SELECT || p == BP_SELECT_DEF) {
-                    unsigned char orig; SIZE_T got;
-                    ReadProcessMemory(pi.hProcess, (LPCVOID)p, &orig, 1, &got);
+                    /* 用 arm 时保存的原字节恢复（命中处读到的必是自己的 CC） */
+                    unsigned char orig = (p == BP_SELECT) ? g_orig_sel : g_orig_seld;
                     WriteProcessMemory(pi.hProcess, (LPVOID)p, &orig, 1, NULL);
                     printf("\n===== HIT %s =====\n", p == BP_SELECT ? "SELECT" : "SELECT_DEF");
                     printf("rcx=%llx rdx=%llx r8=%llx r9=%llx\n",
@@ -93,7 +93,11 @@ int main(void)
                         printf("栈参: ");
                         for (int i = 0; i < 6; i++) printf("[+0x%x]=%016llx ", 0x20 + i * 8, sa[i]);
                         printf("\n");
+                        /* [+0x28] = id 串指针（select_test 实证 idlen=100 在 [+0x20] 低位） */
+                        dump_cstr(pi.hProcess, sa[1], 130, "id串([+0x28])");
                     }
+                    dump_hex(pi.hProcess, ctx.Rdx, 0x40, "ctx(rdx)");
+                    dump_hex(pi.hProcess, ctx.R9, 0x40, "r9对象");
                     /* 描述符数组（select: rsi 指向 0x20 字节条目） */
                     dump_hex(pi.hProcess, ctx.Rsi, 0x40, "desc数组(rsi)");
                     /* 描述符里的两个字符串 */
@@ -125,13 +129,14 @@ int main(void)
             break;
         } else if (ev.dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT) {
             if (!g_armed) {
-                unsigned char orig; SIZE_T got;
-                if (ReadProcessMemory(pi.hProcess, (LPCVOID)BP_SELECT, &orig, 1, &got) && got == 1) {
+                SIZE_T got;
+                if (ReadProcessMemory(pi.hProcess, (LPCVOID)BP_SELECT, &g_orig_sel, 1, &got) && got == 1) {
+                    ReadProcessMemory(pi.hProcess, (LPCVOID)BP_SELECT_DEF, &g_orig_seld, 1, &got);
                     unsigned char cc = 0xCC;
                     WriteProcessMemory(pi.hProcess, (LPVOID)BP_SELECT, &cc, 1, NULL);
                     WriteProcessMemory(pi.hProcess, (LPVOID)BP_SELECT_DEF, &cc, 1, NULL);
                     g_armed = 1;
-                    printf("breakpoints armed\n"); fflush(stdout);
+                    printf("breakpoints armed (orig %02x %02x)\n", g_orig_sel, g_orig_seld); fflush(stdout);
                 }
             }
         }
