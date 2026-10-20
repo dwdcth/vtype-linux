@@ -347,11 +347,14 @@ int wxime_select(wxime_session *s, const void *cand_tlv, const char *word)
     /* ★sst/idbuf 必须 static（引擎异步消费：select 投任务后会话线程才读
      * sst——栈缓冲函数返回即回收，会话线程读到垃圾后事件分发线程静默
      * 死亡，之后所有按键零事件。probe3 用 static 恰好存活，实证此差异）。 */
-    static unsigned char sst[WXIME_SELECT_CTX_SIZE];
+    /* id 暂传零缓冲（TLV 头部做 id 的试验无效：select 后引擎仍不推剩余
+     * 组词事件。真 id 结构 = server 消费者 0x1401a8500 从候选 TLV 生成
+     * 的 100B blob（携带音节覆盖信息），待逆向其构造逻辑后接入）。 */
     static unsigned char idbuf[128];
+    memset(idbuf, 0, sizeof idbuf);
+    static unsigned char sst[WXIME_SELECT_CTX_SIZE];
     long long outv[4] = { 0, 0, 0, 0 };
     memset(sst, 0, sizeof sst);
-    memset(idbuf, 0, sizeof idbuf);
     memcpy(sst, word, (size_t)wl);
     *(unsigned long long *)(sst + 0x10) = wl;      /* std::string size */
     *(unsigned long long *)(sst + 0x18) = 0xF;     /* SSO cap */

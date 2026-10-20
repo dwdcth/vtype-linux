@@ -19,9 +19,9 @@
 
 #define MAX_CAND   72
 #define POLL_MS    10
-#define QUIET_MS   150      /* 候选静默窗：停键后等引擎出最终候选 */
+#define QUIET_MS   250      /* 候选静默窗：停键后等引擎出最终候选 */
 #define WAIT_CAND  2500     /* B 命令候选总超时 */
-#define WAIT_LEFT  600     /* S 后剩余组词候选的观察窗 */
+#define WAIT_LEFT 1200     /* S 后剩余组词候选的观察窗 */
 
 /* 下发给插件的候选快照（B 的应答表 = S 的索引基准） */
 static wxime_candidate g_snap[MAX_CAND];
@@ -40,7 +40,13 @@ static int stdin_pending(void)
  * have_new 代数语义：每次 poll 到非零结果即一次新代。 */
 static int wait_candidates(ULONGLONG wait_ms, int early_exit_on_pending)
 {
-    int have = 0;
+    /* 两类表分层：候选事件表（带选词凭证 tlv，可 S）优先；组词事件词表
+     * （无凭证，展示兜底——如部分选词后的剩余词）仅在窗口内无候选表时用。
+     * 插件按 B 下发的列表索引 S，故展示表必须可选中。 */
+    wxime_candidate cand_ans[MAX_CAND];
+    int cand_n = 0, have = 0;
+    wxime_candidate comp_ans[MAX_CAND];
+    int comp_n = 0;
     ULONGLONG t_last = 0;
     ULONGLONG t0 = GetTickCount64();
     while (GetTickCount64() - t0 < wait_ms) {
@@ -48,19 +54,30 @@ static int wait_candidates(ULONGLONG wait_ms, int early_exit_on_pending)
         wxime_candidate c[MAX_CAND];
         int n = wxime_poll_candidates(c, MAX_CAND);
         if (n > 0) {
-            fprintf(stderr, "[wxhost] wait_candidates: poll -> %d\n", n);
             int m = n > MAX_CAND ? MAX_CAND : n;
-            g_snap_n = 0;
+            wxime_candidate *dst = c[0].tlv ? cand_ans : comp_ans;
+            int *dn = c[0].tlv ? &cand_n : &comp_n;
+            *dn = 0;
             for (int i = 0; i < m; i++) {
                 if (!c[i].word[0]) continue;          /* 跳过空词槽 */
-                g_snap[g_snap_n++] = c[i];
+                dst[(*dn)++] = c[i];
             }
-            if (g_snap_n > 0) { have = 1; t_last = GetTickCount64(); }
+            if (*dn > 0) { have = 1; t_last = GetTickCount64(); }
         }
         if (have && early_exit_on_pending && stdin_pending()) break;
         if (have && GetTickCount64() - t_last >= QUIET_MS) break;
     }
-    return have ? g_snap_n : 0;
+    if (cand_n > 0) {
+        g_snap_n = cand_n;
+        for (int i = 0; i < cand_n; i++) g_snap[i] = cand_ans[i];
+        return cand_n;
+    }
+    if (comp_n > 0) {
+        g_snap_n = comp_n;
+        for (int i = 0; i < comp_n; i++) g_snap[i] = comp_ans[i];
+        return comp_n;
+    }
+    return 0;
 }
 
 static void reply_cand(void)

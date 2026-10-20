@@ -21,6 +21,12 @@ static volatile LONG g_enum_events;     /* 候选更新事件数 */
 static volatile LONG g_skipped_events;  /* 其他事件数 */
 static volatile LONG g_listener_busy;   /* listener 执行中（发键前须归零） */
 
+/* 组词事件词表（展示兜底——无选词凭证 tlv=NULL；不覆盖候选事件快照，
+ * poll 时候选快照优先） */
+static wxime_candidate g_comp[WXIME_SNAP_MAX];
+static volatile LONG g_comp_n;
+static volatile LONG g_comp_ready;
+
 /* 诊断：三级指针遍历找内联 CJK UTF-8 串（WXHOST_DUMP_EV=1 时组词事件触发），
  * 用于定位组词事件携带的候选表（Route W server 从此生成逐键 candidateUpdate） */
 static void scan_utf8(unsigned char *s, int len, const char *path)
@@ -41,6 +47,44 @@ static void scan_utf8(unsigned char *s, int len, const char *path)
         }
     }
 }
+/* 组词事件候选提取：b+0x18 → 容器 → +0x20 起指针数组 → 元素内联 SSO 词
+ * （+0x00 或 +0x10 起，size/cap 在词后 0x10/0x18）。展示用（无选词凭证，
+ * tlv=NULL——凭证形态待 dbg8 抓 ni-select 现场定型）。返回词数。 */
+static int parse_comp_words(unsigned char *ev, wxime_candidate *out, int max)
+{
+    unsigned long long arr = *(unsigned long long *)(ev + 0x18);
+    if (arr <= 0x10000 || arr >= 0x7fffffffffffULL || IsBadReadPtr((void *)arr, 0x120))
+        return 0;
+    int n = 0;
+    for (int i = 0; i < 40 && n < max; i++) {
+        unsigned long long ce = *(unsigned long long *)((unsigned char *)arr + 0x20 + i * 8);
+        if (ce <= 0x10000 || ce >= 0x7fffffffffffULL || IsBadReadPtr((void *)ce, 0x30))
+            continue;
+        unsigned char *el = (unsigned char *)ce;
+        /* 词 SSO：+0x00（首元素）或 +0x10（带 tagged 元数据头的元素）。
+         * 判据：起始字节是 CJK UTF-8 首字节且后续 size(词后 0x10) 合理。 */
+        for (int base = 0; base <= 0x10; base += 0x10) {
+            unsigned char *s = el + base;
+            if (s[0] >= 0xE4 && s[0] <= 0xE9 && (s[1] & 0xC0) == 0x80 && (s[2] & 0xC0) == 0x80) {
+                unsigned long long size = *(unsigned long long *)(s + 0x10);
+                unsigned long long cap  = *(unsigned long long *)(s + 0x18);
+                if (size >= 3 && size <= 60 && cap >= size) {
+                    int wl = (int)(size > 60 ? 60 : size);
+                    if (wl < (int)sizeof out[n].word) {
+                        memcpy(out[n].word, s, (size_t)wl);
+                        out[n].word[wl] = 0;
+                        out[n].pinyin[0] = 0;
+                        out[n].tlv = NULL;
+                        n++;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    return n;
+}
+
 static void dump_event_texts(unsigned char *ev)
 {
     static int do_dump = -1;
@@ -58,6 +102,24 @@ static void dump_event_texts(unsigned char *ev)
             if (ce <= 0x10000 || ce >= 0x7fffffffffffULL || IsBadReadPtr((void *)ce, 0x20)) continue;
             char path[32]; snprintf(path, sizeof path, "容器[%d]", i);
             scan_utf8((unsigned char *)ce, 0x20, path);
+            /* 元素全貌 hex（找 TLV/拼音/序号字段） */
+            if (i < 3 && !IsBadReadPtr((void *)ce, 0x40)) {
+                unsigned char *x = (unsigned char *)ce;
+                for (int row = 0; row < 0x40; row += 16) {
+                    char asc[17];
+                    for (int k = 0; k < 16; k++) {
+                        unsigned char ch = x[row+k];
+                        asc[k] = (ch >= 0x20 && ch < 0x7f) ? ch : '.';
+                    }
+                    asc[16] = 0;
+                    fprintf(stderr, "[wxhost]   元素[%d]+%02x: %02X%02X%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X%02X%02X |%s|\n",
+                            i, row,
+                            x[row],x[row+1],x[row+2],x[row+3],x[row+4],x[row+5],x[row+6],x[row+7],
+                            x[row+8],x[row+9],x[row+10],x[row+11],x[row+12],x[row+13],x[row+14],x[row+15],
+                            asc);
+                }
+                fflush(stderr);
+            }
         }
     }
     for (int off = 0x08; off <= 0x88; off += 8) {
@@ -140,6 +202,22 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
                    *(void **)(ev + WXIME_EVENT_PAYLOFF_OFF) != NULL);
     if (!is_cand) {
         InterlockedIncrement(&g_skipped_events);
+        /* 组词事件：提取容器词表更新快照（逐键候选更新 + 部分选词剩余）。
+         * 词无选词凭证（tlv=NULL），S 选到时 serve 会回 ERR——凭证形态
+         * 待 dbg8 抓 ni-select 现场定型。 */
+        {
+            wxime_candidate tmp[WXIME_SNAP_MAX];
+            int n = parse_comp_words(ev, tmp, WXIME_SNAP_MAX);
+            if (n > 0) {
+                int m = n > WXIME_SNAP_MAX ? WXIME_SNAP_MAX : n;
+                for (int i = 0; i < m; i++) g_comp[i] = tmp[i];
+                InterlockedExchange(&g_comp_n, m);
+                InterlockedExchange(&g_comp_ready, 1);
+                fprintf(stderr, "[wxhost] listener: 组词事件词表 %d 个（首=\"%s\"）\n",
+                        n, g_comp[0].word);
+                fflush(stderr);
+            }
+        }
         dump_event_texts(ev);   /* 诊断：WXHOST_DUMP_EV=1 时扫组词事件文本 */
         InterlockedDecrement(&g_listener_busy);
         return 0;
@@ -171,6 +249,7 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
             InterlockedDecrement(&g_listener_busy);
             return 0;
         }
+        InterlockedExchange(&g_comp_ready, 0);   /* 候选事件优先，作废组词表 */
         InterlockedExchange(&g_snap_count, 0);
         InterlockedExchange(&g_snap_total, 0);
         /* 同步枚举（get_candidates 内部 for 循环），iterator 在事件 b+0x90 */
@@ -197,11 +276,20 @@ void wxime_event_attach(void *session, wxime_get_candidates_fn get_candidates)
 
 int wxime_poll_candidates(wxime_candidate *out, int max)
 {
-    if (!InterlockedExchange(&g_snap_ready, 0)) return 0;
-    int n = g_snap_count;
-    if (n > max) n = max;
-    for (int i = 0; i < n; i++) out[i] = g_snap[i];
-    return g_snap_count;
+    /* 分层：候选事件快照（带选词凭证）优先；无则组词事件词表（展示用）。 */
+    if (InterlockedExchange(&g_snap_ready, 0)) {
+        int n = g_snap_count;
+        if (n > max) n = max;
+        for (int i = 0; i < n; i++) out[i] = g_snap[i];
+        return g_snap_count;
+    }
+    if (InterlockedExchange(&g_comp_ready, 0)) {
+        int n = g_comp_n;
+        if (n > max) n = max;
+        for (int i = 0; i < n; i++) out[i] = g_comp[i];
+        return g_comp_n;
+    }
+    return 0;
 }
 
 int wxime_event_stats(int *enum_events, int *skipped_events)
