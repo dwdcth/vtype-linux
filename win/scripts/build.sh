@@ -19,6 +19,10 @@ fi
 echo "== bin/wetype_win_host.exe"
 $CC -O2 -Wall -o bin/wetype_win_host.exe host/wetype_win_host.c
 
+# wxhost：路线 C 模块化宿主（直调 libwxhld.dll，正式产物）
+echo "== bin/wxhost.exe"
+$CC -O1 -Wall -o bin/wxhost.exe wxhost/main.c wxhost/wxime_engine.c wxhost/wxime_event.c
+
 # 探针是实验工具
 for f in probes/*.c; do
   out="bin/$(basename "$f" .c).exe"

@@ -76,8 +76,9 @@ python3 idaw.py decompile '{"addr":"0x1801e0400"}'
 （probe3.c：initialize→config_dict→create_session→process_input→listener→
 get_candidates→候选解码；`n`→726 个候选、`nihao`→125 个，与 Route W 管道
 时代完全一致，全程不崩）。迭代协议已反汇编全破译（回调返回 BOOL 非零=继续；
-见 README 条目 14）。**下一站 = 选词**：wxime_select_candidate（RVA 1eae50），
-Route W 已知 commit{id} 语义，id 需从 candidate_info 取（疑在 TLV 头部或
-ci 前部）；打通即完整 IME 语义，然后把 probe3 演进为正式宿主。
+见 README 条目 14）。**选词已通**（README 条目 15）；**工程化已启动**：
+win/wxhost/ 模块化宿主（abi/engine/event/main 四模块，E2E 已通，README
+条目 16）——probe3.c 冻结为实证参考，新功能进 wxhost。下一站 =
+行协议接入 + 崩溃止崩 + Rime 插件评估。
 期间静态分析用 objdump（指南坑 9）；改 C 源只用 Edit 工具（坑 10，
 python 补丁链曾把 probe3.c 写爆成 20MB——恢复靠 transcript 重放）。

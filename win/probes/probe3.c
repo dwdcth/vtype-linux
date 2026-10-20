@@ -222,6 +222,26 @@ static int cand_cb(void *ci, void *ctx2, void *c2, void *d2)
                    都在第一个候选后自杀（get_candidates 返回 1=成功标志）。 */
 }
 
+/* 在 buf 内联找 CJK UTF-8 串（E4..E9 起头 + 两个续字节），带路径打印 */
+static void scan_utf8(unsigned char *s, int len, const char *path)
+{
+    for (int k = 0; k + 3 <= len; k++) {
+        if (s[k] >= 0xE4 && s[k] <= 0xE9 &&
+            (s[k+1] & 0xC0) == 0x80 && (s[k+2] & 0xC0) == 0x80) {
+            char out[65]; int n = 0, q = k;
+            while (q + 3 <= len && n + 3 < 64 &&
+                   s[q] >= 0xE4 && s[q] <= 0xE9 &&
+                   (s[q+1] & 0xC0) == 0x80 && (s[q+2] & 0xC0) == 0x80) {
+                out[n++] = s[q]; out[n++] = s[q+1]; out[n++] = s[q+2];
+                q += 3;
+            }
+            out[n] = 0;
+            if (n >= 3) slog("  文本 %s +%x: \"%s\"", path, k, out);
+            k = q - 1;
+        }
+    }
+}
+
 static long long cbListener(void *a, void *b, void *c, void *d, void *e, void *f)
 {
     slog("LISTENER a=%p b=%p c=%p d=%p", a, b, c, d);
@@ -239,22 +259,32 @@ static long long cbListener(void *a, void *b, void *c, void *d, void *e, void *f
         g_ev_ok = (*(void **)((unsigned char *)b + 0x10) == b &&
                    *(void **)((unsigned char *)b + 0x08) != NULL) ? 1 : 0;
         slog("事件类型判定: %s", g_ev_ok ? "候选更新(可枚举)" : "其他(跳过)");
-        /* select 后的事件负载扫描：沿 b 的指针字段两级解引用找上屏文本 */
+        /* select 后的事件负载扫描：三级带路径挖 UTF-8 文本（找上屏 emit 串） */
         if (g_just_selected) {
             g_just_selected = 0;
             slog(">>> select 后事件负载扫描");
+            /* 定点：L1+0x38 → 对象 +0x10 内联"你好"（疑 std::string @+0x10：
+             * buf@+0x10..0x1F, size@+0x20, cap@+0x28 SSO）——dump 全貌验证 */
+            {
+                unsigned long long p38 = *(unsigned long long *)((unsigned char *)b + 0x38);
+                if (p38 > 0x10000 && p38 < 0x7fffffffffffULL && !IsBadReadPtr((void *)p38, 0x40))
+                    dump_evobj("emitObj(b+38)", (void *)p38, 0x40);
+            }
             unsigned char *bb = (unsigned char *)b;
             for (int off = 0x08; off <= 0x88; off += 8) {
                 unsigned long long p = *(unsigned long long *)(bb + off);
-                if (p > 0x10000 && p < 0x7fffffffffffULL && !IsBadReadPtr((void *)p, 0x40)) {
-                    dump_evobj("sel+b", (void *)p, 0x40);
-                    /* 二级：负载对象的指针字段 */
-                    unsigned char *po = (unsigned char *)p;
-                    for (int off2 = 0; off2 <= 0x38; off2 += 8) {
-                        unsigned long long p2 = *(unsigned long long *)(po + off2);
-                        if (p2 > 0x10000 && p2 < 0x7fffffffffffULL && !IsBadReadPtr((void *)p2, 0x20)) {
-                            dump_evobj("sel+b+2", (void *)p2, 0x20);
-                        }
+                if (p <= 0x10000 || p >= 0x7fffffffffffULL || IsBadReadPtr((void *)p, 0x40)) continue;
+                scan_utf8((unsigned char *)p, 0x40, "L1");
+                for (int off2 = 0; off2 <= 0x38; off2 += 8) {
+                    unsigned long long p2 = *(unsigned long long *)((unsigned char *)p + off2);
+                    if (p2 <= 0x10000 || p2 >= 0x7fffffffffffULL || IsBadReadPtr((void *)p2, 0x40)) continue;
+                    char pth[32]; snprintf(pth, sizeof pth, "L1+%x->L2", off2);
+                    scan_utf8((unsigned char *)p2, 0x40, pth);
+                    for (int off3 = 0; off3 <= 0x38; off3 += 8) {
+                        unsigned long long p3 = *(unsigned long long *)((unsigned char *)p2 + off3);
+                        if (p3 <= 0x10000 || p3 >= 0x7fffffffffffULL || IsBadReadPtr((void *)p3, 0x40)) continue;
+                        char pth3[48]; snprintf(pth3, sizeof pth3, "L1+%x->L2+%x->L3", off2, off3);
+                        scan_utf8((unsigned char *)p3, 0x40, pth3);
                     }
                 }
             }

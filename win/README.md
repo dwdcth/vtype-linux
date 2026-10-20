@@ -30,8 +30,13 @@
 win/
 ├── README.md          ← 本文件（最新综合交接文档）
 ├── host/
-│   └── wetype_win_host.c ★ 正式宿主守护进程：vtype 行协议↔session_v2 管道 protobuf 翻译
+│   └── wetype_win_host.c ★ Route W 正式宿主：vtype 行协议↔session_v2 管道 protobuf 翻译
 │                          （zig cc -O2 构建；连接管道/解析响应/自起引擎，见 §6.5）
+├── wxhost/            ★ Route C 模块化正式宿主（单 exe 进程内直调 libwxhld.dll）
+│   ├── wxime_abi.h       C ABI：导出函数指针类型 + 结构偏移常量 + 迭代/选词协议
+│   ├── wxime_engine.h/.c 生命周期：加载/初始化序列/词典门/会话/逐键/选词
+│   ├── wxime_event.h/.c  事件侧：listener/类型门/候选 TLV 解码/快照轮询
+│   └── main.c            演示：nihao→候选表→选词上屏→活性验证（E2E 已通）
 ├── probes/            ← PE 探针源码（zig cc 构建，见 scripts/build.sh）
 │   ├── session_probe.c ★ Phase1 闭环探针：真实 PID + CREATE_SESSION + 逐键，验证管道全通
 │   ├── select_test.c  ★ 选词姿势实验：int_value 会卡死连接，commit{id} 正确（见 §6.5）
@@ -304,7 +309,18 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       候选相关完整 API 家族（candidate_next / delete_candidate_iterator /
       free_candidate_info / check_candidate_extra_info / force_emit_pending_input /
       reset_session / reset_internal_cursor）都在 IAT 表里。
-16. **工具与资产**（本轮新增，全部在 win/）：
+16. **★wxhost 模块化宿主（2026-10-21，路线 C 工程化起点）**：
+    - `win/wxhost/`（4 模块：abi.h / engine.h+c / event.h+c / main.c），
+      `sh scripts/build.sh` 产 `bin/wxhost.exe`。
+    - **E2E 一次通过**：initialize→config_dict→逐键（n=726 候选截 512、
+      nihao=125 候选）→select"你好"→上屏→选词后按键存活，与 probe3 行为一致。
+    - API：`wxime_open(engine_dir, name)` → `wxime_session_open` →
+      `wxime_send_key` / `wxime_poll_candidates` / `wxime_select(tlv, word)`。
+      上屏文本 = 所选候选的词（宿主自行提交，同 Route W jinterop 契约）。
+    - probe3.c 从此冻结为实证参考（诊断 dump 齐全），新功能进 wxhost。
+    - emit 事件负载布局随事件形态漂移（b+0x38 目标不恒定），故不做脆弱
+      提取；宿主以自选词为准即可。
+17. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
       解引用层捕获）、dbg6.c（调试 probe3 自身）。
