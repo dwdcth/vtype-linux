@@ -240,29 +240,23 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
 
     if (s_get_candidates) {
         /* ★iterator 预校验（反汇编 wxime_get_candidates 的解引用链）：
-         * iter=[b+0x90] → q1=*(iter+8)；q1 非空时 q2=*(q1+0x20)、*(q2)。
-         * 实测门条件（自引用+payload）不足以排除坏 iterator——重置会话的
-         * 事件会带毒 iterator，枚举在 mov rdx,[rdx]（+0xC1）崩，VEH 吞掉
-         * 后引擎分发线程残废（demo 时代每轮 11 次"非致命崩"同此址）。
-         * 逐级验可读，坏链直接跳过枚举。 */
+         * iter=[b+0x90] → q1=*(iter+8) → q2=*(q1+0x20) → *(q2)。
+         * 只挡**必崩形态**：q1 非 canonical / q1+0x20 不可读——引擎第一跳
+         * 无条件解引用，此形态 mov 必 #GP（demo 时代"非致命崩"在 +0xC1）。
+         * q2 一律放行：实测引擎对非指针 q2（两 32 位字段拼装/堆填充）自有
+         * 分型路径，直接枚举六轮 100% 成功零崩；预校验拦 q2 反而误丢候选
+         * （'h' 事件 125 词表约 25-50% 概率被误拦，Rime 端表现为候选停留
+         * 旧表）。 */
         unsigned char *iter = ev + WXIME_ITER_OFF;
         unsigned long long q1 = *(unsigned long long *)(iter + 8);
         int iter_ok = 1;
-        if (q1) {
-            /* 精确校验引擎实际会解引用的字节：q1+0x20 处 8 字节、q2 处
-             * 8 字节。整块 IsBadReadPtr(q1,0x28) 会在小对象上越界误报
-             * （'h' 事件 iterator 曾被误拦 → 125 词表丢失）。 */
-            if (q1 < 0x10000 || q1 > 0x7fffffffffffULL ||
-                IsBadReadPtr((unsigned char *)q1 + 0x20, 8))
-                iter_ok = 0;
-            else {
-                unsigned long long q2 = *(unsigned long long *)((unsigned char *)q1 + 0x20);
-                if (q2 && (q2 < 0x10000 || q2 > 0x7fffffffffffULL || IsBadReadPtr((void *)q2, 8)))
-                    iter_ok = 0;
-            }
-        }
+        if (q1 && (q1 < 0x10000 || q1 > 0x7fffffffffffULL ||
+                   IsBadReadPtr((unsigned char *)q1 + 0x20, 8)))
+            iter_ok = 0;
         if (!iter_ok) {
-            fprintf(stderr, "[wxhost] listener: 候选事件但 iterator 毒链，跳过枚举\n");
+            fprintf(stderr, "[wxhost] listener: iterator 致命形态"
+                            "（iter=%p q1=%llx），跳过枚举\n",
+                    (void *)iter, q1);
             fflush(stderr);
             InterlockedDecrement(&g_listener_busy);
             return 0;

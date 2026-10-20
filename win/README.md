@@ -378,12 +378,16 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       a) **serve 模式日志污染协议通道**（stdout 混 [wxhost]/[engine] 日志
          → 客户端读不到 READY）——serve 时全部日志切 stderr
          （wxime_log_to_stderr）；
-      b) **毒链预校验误拦**：IsBadReadPtr(q1,0x28) 整块验会越界误报
-         （'h' 事件 iterator 的 q1 小对象）→ 125 词表被丢；改为只验
-         引擎实际解引用的字节（q1+0x20 处 8B、q2 处 8B）；
+      b) **iterator 预校验定论（三轮迭代）**：引擎对候选事件 iterator 的
+         q2=*(q1+0x20) 存在**非指针合法形态**（两 32 位字段拼装/堆填充，
+         跨进程约 25-50% 出现）——任何拦 q2 的预校验都会间歇性误丢候选
+         （'h' 键 125 词表没了，Rime 端表现为候选停留旧表、选词错位）。
+         最终方案：**只挡 q1 必崩形态**（q1 非 canonical / q1+0x20 不可读
+         ——引擎第一跳无条件解引用），q2 一律放行（引擎自有分型路径，
+         无预校验六轮 100% 枚举成功零崩）；
       c) **非终结键无事件 = 候选不变**（nihao 的 a/o 键引擎不推事件）：
          B 应答 EMPTY 时沿用最近有效表（符合引擎语义，S 索引基准不变）。
-      wxhost E2E 保持 8/8。
+      wxhost E2E 保持 8/8；修复后 Rime E2E（nihao→你好）三连发稳定。
 19. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
