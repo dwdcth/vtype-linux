@@ -114,14 +114,30 @@ int wxhost_serve(wxime_engine *eng)
         if (!L) continue;
         fprintf(stderr, "[wxhost] cmd=%c len=%zu\n", line[0], L);
 
+        if (line[0] == 'U' && line[1] == 'H' && line[2] == ' ') {
+            /* UH <词>：记录用户选词历史（联想数据源） */
+            int r = wxime_add_history(sess, line + 3);
+            printf(r == 1 ? "OK\n" : "ERR\n"); fflush(stdout);
+            continue;
+        }
+
         if (!strcmp(line, "SQ")) {
-            /* 联想：g_last_word 作上文 → sequel 自行推组词事件词表 →
-             * 组词管线收取（联想词无选词凭证，客户端本地拼接上屏） */
+            /* 联想：g_last_word 作上文 → sequel → 联想事件内联词解析
+             * （无选词凭证，客户端本地拼接上屏；词表不进 S 快照） */
             int r = wxime_query_sequel(sess, g_last_word);
             if (r != 1) { printf("ERR\n"); fflush(stdout); continue; }
-            int n = wait_candidates(1500, 0);
-            if (n > 0) reply_cand();
-            else printf("EMPTY\n");
+            wxime_candidate sq[16];
+            int n = 0;
+            ULONGLONG t0 = GetTickCount64();
+            while (GetTickCount64() - t0 < 1500 && !(n = wxime_poll_sequel(sq, 16)))
+                Sleep(10);
+            if (n > 0) {
+                printf("SEQ");
+                for (int i = 0; i < n && i < 16; i++) printf("\t%s", sq[i].word);
+                printf("\n");
+            } else {
+                printf("EMPTY\n");
+            }
             fflush(stdout);
             continue;
         }
@@ -215,9 +231,8 @@ int wxhost_serve(wxime_engine *eng)
                 /* ★整段完成 = 引擎会话进入 post-commit 终态（实测事件分发
                  * 停摆，之后按键零事件）——自动销毁重建，回到初始态。
                  * 对齐插件契约：OK = 插件清缓冲，引擎侧同样干净。
-                 * （曾试 S 后自动 sequel 查联想：sequel 任务在引擎内部线程
-                 * 崩（get_candidates+0xC1 fault=-1，与宿主枚举无关），
-                 * 该引擎版本+wine 直调环境不稳定，联想默认关、SQ 手动试） */
+                 * 上屏词同时记用户历史（联想数据源，见 wxime_add_history）。 */
+                wxime_add_history(sess, g_last_word);
                 wxime_session_reset(sess);
                 printf("OK\n"); fflush(stdout);
             }

@@ -412,7 +412,26 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       系统 ngram 主导，热词大概率只影响联想/长句路径（与
       wxime_get_most_likely_sequel 联想导出呼应）。官方 server import 54
       个 wxime_*（无 add_user_history——那是 Android/Mac 宿主用）。
-20. **联想 API 链路逆向与定论（2026-10-21）**：
+20. **★联想打通（2026-10-21 续挖，UH/SQ 端到端三轮稳定 `SEQ 好`）**：
+    - **数据源补全**：`wxime_add_user_history(词指针, 词字节数≤24)`
+      （IDA 伪代码定论：日志串 "add user dict word len"）= 记录一次用户
+      选词历史——**sequel 联想的上文依赖只有此 API 写**（select 内部学习
+      只写词频）。S 整段完成自动喂历史 + serve 命令 `UH <词>`。词须已在
+      用户词典（查不到返回 0，如"呢"；"吗/啊"可记）。
+    - **联想结果取回（三轮 dump 定稿的标签语义）**：sequel 完成后引擎推
+      CandidateUpdatedEvent（sigCandidateUpdated + iterator）但**不满足
+      自引用门**；iterator 是引擎内部分页类型（硬枚举 call 空表 rip=0 AV）。
+      正确路径＝内联解析：锚 = `*(*(ev+0x78))`（触发词"你好"），
+      词 = `*(*(ev+0x08)+0x10)` 对象 +0（"好"）。锚不匹配保留标志
+      （杂事件先行到达不消费）；构造竞态让出重读 400 次。
+      协议：`SQ` → `SEQ\t词…`（无选词凭证，客户端本地拼接）。
+    - **历史教训链**（三次误读 dump 标签才对齐，全部记录在案）：
+      ① "L1+78" 是 `*(ev+0x78)` 解引用后的对象、非 ev 本体偏移；
+      ② 词在 `*(l1+0x10)` 对象 +0、非指针数组元素；
+      ③ parse 失败须区分 -1（未确证，保留标志）与 0（已确证无词）。
+    - rime 侧接入待做：librime commit 后空查询不触发 translator，需
+      librime-predict 类机制配合（SQ→SEQ 协议已就绪）。
+    - 以下为前期探路记录（force_emit 危险结论仍有效）：
     - **已确证 ABI**（IDA 伪代码 + server 调用现场）：
       `wxime_set_text_around_cursor(session, 前文,len, 选中,len, 后文,len,
       int)`（引擎日志验证 before_len 生效；返回值是残留勿信）+

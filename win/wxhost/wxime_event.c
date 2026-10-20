@@ -32,6 +32,18 @@ static wxime_candidate g_seq[WXIME_SNAP_MAX];
 static volatile LONG g_seq_n;
 static volatile LONG g_seq_ready;
 
+/* sequel 待响应标志：query_sequel 发起时置位；引擎日志实证联想结果走
+ * CandidateUpdatedEvent（sigCandidateUpdated + malloc iterator）但事件
+ * 不满足自引用门——置位期间到达的非门事件按候选事件枚举 */
+static volatile LONG g_sequel_pending;
+static char g_sequel_anchor[32];       /* 本轮 sequel 的上文词（锚） */
+
+void wxime_event_expect_sequel(const char *anchor)
+{
+    snprintf(g_sequel_anchor, sizeof g_sequel_anchor, "%s", anchor ? anchor : "");
+    InterlockedExchange(&g_sequel_pending, 1);
+}
+
 /* 诊断：三级指针遍历找内联 CJK UTF-8 串（WXHOST_DUMP_EV=1 时组词事件触发），
  * 用于定位组词事件携带的候选表（Route W server 从此生成逐键 candidateUpdate） */
 static void scan_utf8(unsigned char *s, int len, const char *path)
@@ -90,15 +102,53 @@ static int parse_comp_words(unsigned char *ev, wxime_candidate *out, int max)
     return n;
 }
 
-/* 联想事件词表（get_most_likely_sequel 结果）：断点保留——结果经多轮
- * hex dump 确证不经事件流分发（事件 ev+0x08 链上对象全为元数据指针，
- * 早期 dump 所见 CJK 串系候选枚举的内存残留）。取回通道待跟进引擎内
- * 部 functor 链（sequel 本体 call *0x20(%r8)，vtable 0x180e1c2b0）或
- * server 的联想取回接口。 */
-static int parse_sequel_words(unsigned char *ev, wxime_candidate *out, int max)
+/* 联想事件词表（get_most_likely_sequel 结果，2026-10-21 终版实证，
+ * dump 标签语义三次修正后定稿）：
+ *   锚  = *(*(ev+0x78)) 处的内联触发词（"你好"）
+ *   词表 = *(ev+0x08) → l1；*(l1+0x10) → 词对象数组，每对象 +0 起
+ *   内联 CJK 词（"好"）。锚不匹配即丢弃（防垃圾命中）。联想 iterator
+ *   是引擎内部分页类型，硬枚举 AV——只解析内联词。 */
+static int is_cjk3(unsigned char *p)
 {
-    (void)ev; (void)out; (void)max;
-    return 0;
+    return p[0] >= 0xE4 && p[0] <= 0xE9 && (p[1] & 0xC0) == 0x80 && (p[2] & 0xC0) == 0x80;
+}
+static int parse_sequel_words(unsigned char *ev, const char *anchor,
+                              wxime_candidate *out, int max)
+{
+    /* 锚验证（构造竞态：让出重读 400 次） */
+    if (!anchor || !*anchor) return -1;
+    int al = (int)strlen(anchor);
+    if (al > 24) return -1;
+    unsigned long long ap = *(unsigned long long *)(ev + 0x78);
+    if (ap <= 0x10000 || ap >= 0x7fffffffffffULL || !wx_readable((void *)ap, (size_t)al))
+        return -1;
+    int anchored = 0;
+    for (int tries = 0; ; tries++) {
+        if (strncmp((char *)ap, anchor, (size_t)al) == 0) { anchored = 1; break; }
+        if (tries >= 400) break;
+        SwitchToThread();
+    }
+    if (!anchored) return -1;
+
+    /* 词表：ev+8 → l1；*(l1+0x10) → 词对象，词在其 +0 起内联
+     * （dump 实证"好"恰在 +0；窗口 0x40 收词，暂单串） */
+    unsigned long long l1 = *(unsigned long long *)(ev + 0x08);
+    if (l1 <= 0x10000 || l1 >= 0x7fffffffffffULL || !wx_readable((void *)l1, 0x18))
+        return -1;
+    unsigned char *w = (unsigned char *)*(unsigned long long *)
+        ((unsigned char *)l1 + 0x10);
+    if (!w || (unsigned long long)w <= 0x10000 ||
+        (unsigned long long)w >= 0x7fffffffffffULL || !wx_readable(w, 0x40))
+        return -1;
+    if (!is_cjk3(w)) return 0;   /* 锚对但无词：清标志 */
+    int wl = 0;
+    while (wl + 3 < 60 && is_cjk3(w + wl)) wl += 3;
+    if (wl < 3) return 0;
+    memcpy(out[0].word, w, (size_t)wl);
+    out[0].word[wl] = 0;
+    out[0].pinyin[0] = 0;
+    out[0].tlv = NULL;
+    return 1;
 }
 
 static void dump_event_texts(unsigned char *ev)
@@ -231,6 +281,8 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
     int is_cand = (*(void **)(ev + WXIME_EVENT_SELFREF_OFF) == b &&
                    *(void **)(ev + WXIME_EVENT_PAYLOFF_OFF) != NULL);
     if (!is_cand) {
+        /* sequel 响应事件：iterator 是引擎内部分页类型（实测硬枚举
+         * call 空表 rip=0 AV），走内联词解析（ev+8→+8→+0x10 实证） */
 comp_parse:
         InterlockedIncrement(&g_skipped_events);
         /* 组词事件：提取容器词表更新快照（逐键候选更新 + 部分选词剩余）。
@@ -249,18 +301,23 @@ comp_parse:
                 fflush(stderr);
             }
         }
-        /* 联想事件（sequel 结果）：组词解析无果时按 b+0x08 形态提取 */
-        {
+        /* 联想事件（sequel 结果）：仅发起过 sequel 且未消费时解析。
+         * 锚不匹配（-1）保留标志——杂事件常先于联想事件到达，不能让它
+         * 们消费掉标志。 */
+        if (g_sequel_pending) {
             wxime_candidate tmp[WXIME_SNAP_MAX];
-            int n = parse_sequel_words(ev, tmp, WXIME_SNAP_MAX);
-            if (n > 0) {
-                int m = n > WXIME_SNAP_MAX ? WXIME_SNAP_MAX : n;
-                for (int i = 0; i < m; i++) g_seq[i] = tmp[i];
-                InterlockedExchange(&g_seq_n, m);
-                InterlockedExchange(&g_seq_ready, 1);
-                fprintf(stderr, "[wxhost] listener: 联想词表 %d 个（首=\"%s\"）\n",
-                        n, g_seq[0].word);
-                fflush(stderr);
+            int n = parse_sequel_words(ev, g_sequel_anchor, tmp, WXIME_SNAP_MAX);
+            if (n >= 0) {
+                InterlockedExchange(&g_sequel_pending, 0);
+                if (n > 0) {
+                    int m = n > WXIME_SNAP_MAX ? WXIME_SNAP_MAX : n;
+                    for (int i = 0; i < m; i++) g_seq[i] = tmp[i];
+                    InterlockedExchange(&g_seq_n, m);
+                    InterlockedExchange(&g_seq_ready, 1);
+                    fprintf(stderr, "[wxhost] listener: 联想词表 %d 个（首=\"%s\"）\n",
+                            n, g_seq[0].word);
+                    fflush(stderr);
+                }
             }
         }
         dump_event_texts(ev);   /* 诊断：WXHOST_DUMP_EV=1 时扫组词事件文本 */
@@ -268,7 +325,7 @@ comp_parse:
         return 0;
     }
     InterlockedIncrement(&g_enum_events);
-
+cand_enum:
     if (s_get_candidates) {
         /* ★iterator 预校验（反汇编 wxime_get_candidates 的解引用链）：
          * iter=[b+0x90] → q1=*(iter+8) → q2=*(q1+0x20) → *(q2)。

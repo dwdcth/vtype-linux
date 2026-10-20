@@ -29,6 +29,10 @@ void wxime_event_attach(void *session, wxime_get_candidates_fn get_candidates);
  * 返回候选数（0=自上次取走后无候选更新），拷贝进 out（至多 max 个）。 */
 int wxime_poll_candidates(wxime_candidate *out, int max);
 
+/* 标记即将发起 sequel：期间到达的非门事件按候选事件枚举（联想结果
+ * 走 CandidateUpdatedEvent 但不满足自引用门——见 wxime_event.c） */
+void wxime_event_expect_sequel(const char *anchor);
+
 /* 取走联想词表快照（sequel 结果，无选词凭证，展示/本地拼词用） */
 int wxime_poll_sequel(wxime_candidate *out, int max);
 

@@ -442,6 +442,32 @@ int wxime_set_hot_word(wxime_engine *eng, const char *s2, int s2len,
     return r;
 }
 
+/* ---------------- 用户历史（联想数据源，2026-10-21 续挖） ----------------
+ * wxime_add_user_history(词指针, 词字节数≤24)（IDA 伪代码定论）：
+ * 日志串 "add user dict word len: %u"；流程 = 在用户词典查该词记录，
+ * 恰一条时取记录 SSO 串带 {type=5, 权重1.0f} 提交进历史——即"记录一次
+ * 用户选词"。查不到记录返回 0（安全路径，无崩溃分支）。select 内部
+ * 学习只写词频，句子历史（sequel 联想的上文依赖）只有本 API 写。 */
+typedef int (*wxime_add_history_fn)(const void *, unsigned int);
+
+int wxime_add_history(wxime_session *s, const char *word)
+{
+    wxime_add_history_fn fn =
+        (wxime_add_history_fn)(uintptr_t)GetProcAddress(
+            s->eng->dll, "wxime_add_user_history");
+    if (!fn) return -1;
+    int wl = word ? (int)strlen(word) : 0;
+    if (wl <= 0 || wl > 24) return -1;
+    /* static：引擎内部可能异步读（同 select 的 sst 教训） */
+    static char wbuf[32];
+    memset(wbuf, 0, sizeof wbuf);
+    memcpy(wbuf, word, (size_t)wl);
+    for (int i = 0; i < 100 && !wxime_event_listener_idle(); i++) Sleep(2);
+    int r = fn(wbuf, (unsigned int)wl);
+    wxime_log("add_user_history(\"%s\") -> %d", wbuf, r);
+    return r;
+}
+
 /* ---------------- 联想（get_most_likely_sequel） ----------------
  * 官方 server 两处调用形态合成：
  *   ① set_text_around_cursor(session, before,beforeLen, sel,selLen,
@@ -472,6 +498,7 @@ int wxime_query_sequel(wxime_session *s, const char *before)
     int bl = before ? (int)strlen(before) : 0;
     int t = txt(s->handle, before, bl, "", 0, "", 0, 0);
     opt(s->handle, 0xE, 1);
+    wxime_event_expect_sequel(before);   /* 响应事件锚定解析（见 wxime_event.c） */
     int r = seq(s->handle);
     /* ★定论（IDA + 实验）：sequel 完成回调 = session->vt[0x40]，自行把
      * 联想词表作为组词事件推 listener（实测"你爸"等词表到达）——无需
