@@ -412,20 +412,27 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       系统 ngram 主导，热词大概率只影响联想/长句路径（与
       wxime_get_most_likely_sequel 联想导出呼应）。官方 server import 54
       个 wxime_*（无 add_user_history——那是 Android/Mac 宿主用）。
-20. **联想 API 链路逆向与断点（2026-10-21）**：
-    - **已确证 ABI**（server 调用现场合成）：
+20. **联想 API 链路逆向与定论（2026-10-21）**：
+    - **已确证 ABI**（IDA 伪代码 + server 调用现场）：
       `wxime_set_text_around_cursor(session, 前文,len, 选中,len, 后文,len,
-      int)`（1401af64a 现场，引擎日志验证 before_len 生效；返回值是残
-      留勿信）+ `wxime_session_set_bool_option(session, 14, 1)` 开联想
-      + `wxime_get_most_likely_sequel(session)` 返回 BOOL（异步请求提交
-      成功）。serve 命令 `SQ`（g_last_word 作上文）与 S 整段自动联想已
-      接入，协议行 `SEQ\t词…`。
-    - **断点**：联想结果**不经事件流分发**——sequel 后唯一推事件的
-      ev+0x08 链上对象经多轮 hex dump 全为元数据指针（早先 dump 所见
-      "好"确系候选枚举的内存池残留，非联想数据）。取回通道待跟进：
-      sequel 本体 `call *0x20(%r8)` 的内部 functor 链（vtable
-      0x180e1c2b0，第 5 槽 0x1801cbdc0 为析构 thunk，真正投递槽待定）
-      或 server 侧联想取回接口（管道消息）。
+      int)`（引擎日志验证 before_len 生效；返回值是残留勿信）+
+      `wxime_session_set_bool_option(session, 14, 1)` 开联想 +
+      `wxime_get_most_likely_sequel(session)` 返回 BOOL（PostTask 异步，
+      完成回调 = session->vt[0x40]）+ `wxime_force_emit_pending_input(
+      session, const char*, uint, bool)`。serve 命令 `SQ`（g_last_word
+      作上文）保留为显式实验口。
+    - **联想定论（该引擎版本 wine 直调环境不可用）**：
+      a) sequel（无 emit）：安全零崩，但联想词**不上事件流**（多轮
+         hex dump：事件链对象全为元数据指针；早先 dump 所见"好"确系
+         候选枚举的内存池残留）；
+      b) force_emit(bool=1)：能触发引擎 SearchCandidates + 组词事件
+         词表（"你爸"等），但**引擎内部线程崩**（get_candidates+0xC1
+         解引用 -1），且**写坏用户词典**（1/ 目录 leveldb 半写态，
+         之后每次引擎启动都崩 2 次 AV——清 1/ 目录恢复）；
+      c) bool=0 / str=NULL：安全无事件。
+      结论：联想主循环保持关闭（S 整段不自动 sequel），SQ 留作实验口；
+      后续若挖，方向是 server 侧联想取回的管道消息格式（绕开
+      force_emit 的崩溃路径）。
 21. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/

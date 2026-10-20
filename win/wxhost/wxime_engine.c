@@ -454,6 +454,7 @@ typedef int (*wxime_set_text_around_fn)(void *, const char *, int,
                                         const char *, int, int);
 typedef int (*wxime_set_bool_opt_fn)(void *, int, unsigned char);
 typedef int (*wxime_sequel_fn)(void *);
+typedef int (*wxime_force_emit_fn)(void *, const char *, int, int);
 
 int wxime_query_sequel(wxime_session *s, const char *before)
 {
@@ -464,13 +465,21 @@ int wxime_query_sequel(wxime_session *s, const char *before)
         (wxime_set_bool_opt_fn)(uintptr_t)GetProcAddress(dll, "wxime_session_set_bool_option");
     wxime_sequel_fn seq =
         (wxime_sequel_fn)(uintptr_t)GetProcAddress(dll, "wxime_get_most_likely_sequel");
+    wxime_force_emit_fn emit =
+        (wxime_force_emit_fn)(uintptr_t)GetProcAddress(dll, "wxime_force_emit_pending_input");
     if (!txt || !opt || !seq) return -1;
     for (int i = 0; i < 100 && !wxime_event_listener_idle(); i++) Sleep(2);
     int bl = before ? (int)strlen(before) : 0;
     int t = txt(s->handle, before, bl, "", 0, "", 0, 0);
     opt(s->handle, 0xE, 1);
     int r = seq(s->handle);
-    wxime_log("text_around(\"%s\")->%d opt+sequel -> %d", before ? before : "", t, r);
+    /* ★定论（IDA + 实验）：sequel 完成回调 = session->vt[0x40]，自行把
+     * 联想词表作为组词事件推 listener（实测"你爸"等词表到达）——无需
+     * force_emit。force_emit(session,str,len,1) 实测必崩（引擎内解引用
+     * -1），且崩溃杀死主线程；bool=0 则无事件。serve 用组词表分支收。 */
+    (void)emit;
+    Sleep(50);   /* 引擎异步分发喘息 */
+    wxime_log("text_around(\"%s\")->%d sequel->%d", before ? before : "", t, r);
     return r;
 }
 

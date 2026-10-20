@@ -115,22 +115,13 @@ int wxhost_serve(wxime_engine *eng)
         fprintf(stderr, "[wxhost] cmd=%c len=%zu\n", line[0], L);
 
         if (!strcmp(line, "SQ")) {
-            /* 联想：g_last_word 作上文 → sequel → SEQ 行（联想词无选词
-             * 凭证，客户端本地拼接上屏，不进 S 快照） */
+            /* 联想：g_last_word 作上文 → sequel 自行推组词事件词表 →
+             * 组词管线收取（联想词无选词凭证，客户端本地拼接上屏） */
             int r = wxime_query_sequel(sess, g_last_word);
             if (r != 1) { printf("ERR\n"); fflush(stdout); continue; }
-            wxime_candidate sq[16];
-            int n = 0;
-            ULONGLONG t0 = GetTickCount64();
-            while (GetTickCount64() - t0 < 1500 && !(n = wxime_poll_sequel(sq, 16)))
-                Sleep(10);
-            if (n > 0) {
-                printf("SEQ");
-                for (int i = 0; i < n && i < 16; i++) printf("\t%s", sq[i].word);
-                printf("\n");
-            } else {
-                printf("EMPTY\n");
-            }
+            int n = wait_candidates(1500, 0);
+            if (n > 0) reply_cand();
+            else printf("EMPTY\n");
             fflush(stdout);
             continue;
         }
@@ -217,35 +208,18 @@ int wxhost_serve(wxime_engine *eng)
                         left, g_snap[0].word);
                 reply_cand();
             } else {
-                /* 整段完成：reset 前查联想（上文在会话里，reset 即丢）。
-                 * 有联想 → SEQ 行（联想词客户端本地拼接，不进 S 快照）。 */
-                int r = wxime_query_sequel(sess, g_snap[idx].word);
-                wxime_candidate sq[16];
-                int seq_n = 0;
-                if (r == 1) {
-                    ULONGLONG t0 = GetTickCount64();
-                    while (GetTickCount64() - t0 < 1500 && !(seq_n = wxime_poll_sequel(sq, 16)))
-                        Sleep(10);
-                }
+                fprintf(stderr, "[wxhost] S idx=%d 整段完成（上屏=\"%s\"）\n",
+                        idx, g_snap[idx].word);
                 snprintf(g_last_word, sizeof g_last_word, "%s", g_snap[idx].word);
-                if (seq_n > 0) {
-                    fprintf(stderr, "[wxhost] S 整段+联想 %d 个（首=%s）\n",
-                            seq_n, sq[0].word);
-                    g_snap_n = 0;
-                    wxime_session_reset(sess);
-                    printf("SEQ");
-                    for (int i = 0; i < seq_n && i < 16; i++) printf("\t%s", sq[i].word);
-                    printf("\n"); fflush(stdout);
-                } else {
-                    fprintf(stderr, "[wxhost] S idx=%d 整段完成（上屏=\"%s\"）\n",
-                            idx, g_snap[idx].word);
-                    g_snap_n = 0;
-                    /* ★整段完成 = 引擎会话进入 post-commit 终态（实测事件分发
-                     * 停摆，之后按键零事件）——自动销毁重建，回到初始态。
-                     * 对齐插件契约：OK = 插件清缓冲，引擎侧同样干净。 */
-                    wxime_session_reset(sess);
-                    printf("OK\n"); fflush(stdout);
-                }
+                g_snap_n = 0;
+                /* ★整段完成 = 引擎会话进入 post-commit 终态（实测事件分发
+                 * 停摆，之后按键零事件）——自动销毁重建，回到初始态。
+                 * 对齐插件契约：OK = 插件清缓冲，引擎侧同样干净。
+                 * （曾试 S 后自动 sequel 查联想：sequel 任务在引擎内部线程
+                 * 崩（get_candidates+0xC1 fault=-1，与宿主枚举无关），
+                 * 该引擎版本+wine 直调环境不稳定，联想默认关、SQ 手动试） */
+                wxime_session_reset(sess);
+                printf("OK\n"); fflush(stdout);
             }
             continue;
         }

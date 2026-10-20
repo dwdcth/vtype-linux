@@ -231,6 +231,7 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
     int is_cand = (*(void **)(ev + WXIME_EVENT_SELFREF_OFF) == b &&
                    *(void **)(ev + WXIME_EVENT_PAYLOFF_OFF) != NULL);
     if (!is_cand) {
+comp_parse:
         InterlockedIncrement(&g_skipped_events);
         /* 组词事件：提取容器词表更新快照（逐键候选更新 + 部分选词剩余）。
          * 词无选词凭证（tlv=NULL），S 选到时 serve 会回 ERR——凭证形态
@@ -271,25 +272,35 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
     if (s_get_candidates) {
         /* ★iterator 预校验（反汇编 wxime_get_candidates 的解引用链）：
          * iter=[b+0x90] → q1=*(iter+8) → q2=*(q1+0x20) → *(q2)。
-         * 只挡**必崩形态**：q1 非 canonical / q1+0x20 不可读——引擎第一跳
-         * 无条件解引用，此形态 mov 必 #GP（demo 时代"非致命崩"在 +0xC1）。
-         * q2 一律放行：实测引擎对非指针 q2（两 32 位字段拼装/堆填充）自有
-         * 分型路径，直接枚举六轮 100% 成功零崩；预校验拦 q2 反而误丢候选
-         * （'h' 事件 125 词表约 25-50% 概率被误拦，Rime 端表现为候选停留
-         * 旧表）。 */
+         * 只挡**必崩形态**：q1 非 canonical / q1+0x20 不可读（引擎第一跳
+         * 无条件解引用）；q2 == -1（sequel 联想事件实测哨兵）——且 -1 存在
+         * **构造竞态**（预校验读时合法、引擎解引用时已被任务线程写 -1，
+         * fault=-1 同址复现）→ 毒时短暂让出重读等写完，仍毒才跳过。
+         * 其余 q2 形态一律放行：引擎对非指针 q2（32 位字段拼装/堆填充）
+         * 自有分型路径，拦了误丢候选（'h' 事件 125 词表曾 25-50% 误拦）。 */
         unsigned char *iter = ev + WXIME_ITER_OFF;
-        unsigned long long q1 = *(unsigned long long *)(iter + 8);
-        int iter_ok = 1;
-        if (q1 && (q1 < 0x10000 || q1 > 0x7fffffffffffULL ||
-                   !wx_readable((unsigned char *)q1 + 0x20, 8)))
-            iter_ok = 0;
+        int iter_ok = 0;
+        for (int tries = 0; ; tries++) {
+            unsigned long long q1 = *(unsigned long long *)(iter + 8);
+            iter_ok = 1;
+            if (q1 && (q1 < 0x10000 || q1 > 0x7fffffffffffULL ||
+                       !wx_readable((unsigned char *)q1 + 0x20, 8)))
+                iter_ok = 0;
+            else if (q1) {
+                unsigned long long q2 = *(unsigned long long *)((unsigned char *)q1 + 0x20);
+                if (q2 == (unsigned long long)-1) iter_ok = 0;
+            }
+            if (iter_ok || tries >= 400) break;
+            SwitchToThread();
+        }
         if (!iter_ok) {
             fprintf(stderr, "[wxhost] listener: iterator 致命形态"
-                            "（iter=%p q1=%llx），跳过枚举\n",
-                    (void *)iter, q1);
+                            "（iter=%p），跳过枚举、转组词解析\n",
+                    (void *)iter);
             fflush(stderr);
-            InterlockedDecrement(&g_listener_busy);
-            return 0;
+            /* q2=-1 的 sequel 事件被候选门误判：枚举跳过但事件本体可能
+             * 携带联想词表（组词形态）——落进下方组词解析分支 */
+            goto comp_parse;
         }
         InterlockedExchange(&g_comp_ready, 0);   /* 候选事件优先，作废组词表 */
         InterlockedExchange(&g_snap_count, 0);
