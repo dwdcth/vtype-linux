@@ -426,7 +426,7 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       sequel 本体 `call *0x20(%r8)` 的内部 functor 链（vtable
       0x180e1c2b0，第 5 槽 0x1801cbdc0 为析构 thunk，真正投递槽待定）
       或 server 侧联想取回接口（管道消息）。
-22. **工具与资产**（win/ 内）：
+23. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
       解引用层捕获）、dbg6.c（调试 probe3 自身）。
