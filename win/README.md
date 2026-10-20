@@ -433,7 +433,15 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       结论：联想主循环保持关闭（S 整段不自动 sequel），SQ 留作实验口；
       后续若挖，方向是 server 侧联想取回的管道消息格式（绕开
       force_emit 的崩溃路径）。
-21. **工具与资产**（win/ 内）：
+21. **常驻稳定性长跑 + 插件构建脚本（2026-10-21）**：
+    - **50 轮混合压测**（B nihao+S 0 为主，每 10 轮穿插 B n / C 重置 /
+      B nihaoma+S 1）：**0 AV、121/121 应答、零 EMPTY/ERR**，56 次选词
+      全对；20 轮压测中活进程 RSS 采样 4.4MB 恒定（60s 零增长）——
+      无泄漏，fcitx5/rime 常驻场景可用。
+    - `win/rime/build_and_test.sh`：librime+wetype 插件可复现构建
+      （librime 1.17 检出、boost.regex 自编、插件同步、cmake、可选
+      --test 跑 E2E），替代此前手工 /tmp 步骤。
+22. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
       解引用层捕获）、dbg6.c（调试 probe3 自身）。
