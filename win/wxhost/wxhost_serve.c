@@ -23,7 +23,9 @@
 #define WAIT_CAND  2500     /* B 命令候选总超时 */
 #define WAIT_LEFT 1200     /* S 后剩余组词候选的观察窗 */
 
-/* 下发给插件的候选快照（B 的应答表 = S 的索引基准） */
+/* 下发给插件的候选快照（B 的应答表 = S 的索引基准）；g_last_word=
+ * 最近上屏词（SQ 联想的默认上文） */
+static char g_last_word[64];
 static wxime_candidate g_snap[MAX_CAND];
 static int g_snap_n;
 
@@ -112,6 +114,27 @@ int wxhost_serve(wxime_engine *eng)
         if (!L) continue;
         fprintf(stderr, "[wxhost] cmd=%c len=%zu\n", line[0], L);
 
+        if (!strcmp(line, "SQ")) {
+            /* 联想：g_last_word 作上文 → sequel → SEQ 行（联想词无选词
+             * 凭证，客户端本地拼接上屏，不进 S 快照） */
+            int r = wxime_query_sequel(sess, g_last_word);
+            if (r != 1) { printf("ERR\n"); fflush(stdout); continue; }
+            wxime_candidate sq[16];
+            int n = 0;
+            ULONGLONG t0 = GetTickCount64();
+            while (GetTickCount64() - t0 < 1500 && !(n = wxime_poll_sequel(sq, 16)))
+                Sleep(10);
+            if (n > 0) {
+                printf("SEQ");
+                for (int i = 0; i < n && i < 16; i++) printf("\t%s", sq[i].word);
+                printf("\n");
+            } else {
+                printf("EMPTY\n");
+            }
+            fflush(stdout);
+            continue;
+        }
+
         if (!strcmp(line, "Q")) break;
         if (!strcmp(line, "PING")) { printf("PONG\n"); fflush(stdout); continue; }
         if (!strcmp(line, "OPT spans") || !strcmp(line, "OPT tokens")) {
@@ -187,21 +210,42 @@ int wxhost_serve(wxime_engine *eng)
                 continue;
             }
             /* 部分选词：emit 后引擎若剩组词会再推候选 → 回 CAND（同时成为
-             * 新快照）；整段完成 → OK。契约（jinterop）。 */
+             * 新快照）；整段完成 → 查联想再收尾。契约（jinterop）。 */
             int left = wait_candidates(WAIT_LEFT, 0);
             if (left > 0) {
                 fprintf(stderr, "[wxhost] S 部分选词，剩余 %d 候选（首=%s）\n",
                         left, g_snap[0].word);
                 reply_cand();
             } else {
-                fprintf(stderr, "[wxhost] S idx=%d 整段完成（上屏=\"%s\"）\n",
-                        idx, g_snap[idx].word);
-                g_snap_n = 0;
-                /* ★整段完成 = 引擎会话进入 post-commit 终态（实测事件分发
-                 * 停摆，之后按键零事件）——自动销毁重建，回到初始态。
-                 * 对齐插件契约：OK = 插件清缓冲，引擎侧同样干净。 */
-                wxime_session_reset(sess);
-                printf("OK\n"); fflush(stdout);
+                /* 整段完成：reset 前查联想（上文在会话里，reset 即丢）。
+                 * 有联想 → SEQ 行（联想词客户端本地拼接，不进 S 快照）。 */
+                int r = wxime_query_sequel(sess, g_snap[idx].word);
+                wxime_candidate sq[16];
+                int seq_n = 0;
+                if (r == 1) {
+                    ULONGLONG t0 = GetTickCount64();
+                    while (GetTickCount64() - t0 < 1500 && !(seq_n = wxime_poll_sequel(sq, 16)))
+                        Sleep(10);
+                }
+                snprintf(g_last_word, sizeof g_last_word, "%s", g_snap[idx].word);
+                if (seq_n > 0) {
+                    fprintf(stderr, "[wxhost] S 整段+联想 %d 个（首=%s）\n",
+                            seq_n, sq[0].word);
+                    g_snap_n = 0;
+                    wxime_session_reset(sess);
+                    printf("SEQ");
+                    for (int i = 0; i < seq_n && i < 16; i++) printf("\t%s", sq[i].word);
+                    printf("\n"); fflush(stdout);
+                } else {
+                    fprintf(stderr, "[wxhost] S idx=%d 整段完成（上屏=\"%s\"）\n",
+                            idx, g_snap[idx].word);
+                    g_snap_n = 0;
+                    /* ★整段完成 = 引擎会话进入 post-commit 终态（实测事件分发
+                     * 停摆，之后按键零事件）——自动销毁重建，回到初始态。
+                     * 对齐插件契约：OK = 插件清缓冲，引擎侧同样干净。 */
+                    wxime_session_reset(sess);
+                    printf("OK\n"); fflush(stdout);
+                }
             }
             continue;
         }

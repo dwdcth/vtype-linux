@@ -51,6 +51,9 @@ int wxime_warm_up(wxime_session *sess);
 int wxime_set_hot_word(wxime_engine *eng, const char *s2, int s2len,
                        const char *s3, int s3len);
 
+/* 联想：设上文文本 + 开 14 号开关 + get_most_likely_sequel，结果经事件管线 */
+int wxime_query_sequel(wxime_session *sess, const char *before);
+
 /* 会话重置（C 命令）：销毁当前会话并重建（ESC 清不掉候选展示状态，
  * 唯一可靠的重置方式，同 Route W 断线重连语义）。listener 自动重挂。
  * 返回 0=成功。 */

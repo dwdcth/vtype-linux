@@ -27,6 +27,11 @@ static wxime_candidate g_comp[WXIME_SNAP_MAX];
 static volatile LONG g_comp_n;
 static volatile LONG g_comp_ready;
 
+/* 联想事件词表（sequel 结果；展示用无凭证，与组词表同层兜底） */
+static wxime_candidate g_seq[WXIME_SNAP_MAX];
+static volatile LONG g_seq_n;
+static volatile LONG g_seq_ready;
+
 /* 诊断：三级指针遍历找内联 CJK UTF-8 串（WXHOST_DUMP_EV=1 时组词事件触发），
  * 用于定位组词事件携带的候选表（Route W server 从此生成逐键 candidateUpdate） */
 static void scan_utf8(unsigned char *s, int len, const char *path)
@@ -83,6 +88,17 @@ static int parse_comp_words(unsigned char *ev, wxime_candidate *out, int max)
         }
     }
     return n;
+}
+
+/* 联想事件词表（get_most_likely_sequel 结果）：断点保留——结果经多轮
+ * hex dump 确证不经事件流分发（事件 ev+0x08 链上对象全为元数据指针，
+ * 早期 dump 所见 CJK 串系候选枚举的内存残留）。取回通道待跟进引擎内
+ * 部 functor 链（sequel 本体 call *0x20(%r8)，vtable 0x180e1c2b0）或
+ * server 的联想取回接口。 */
+static int parse_sequel_words(unsigned char *ev, wxime_candidate *out, int max)
+{
+    (void)ev; (void)out; (void)max;
+    return 0;
 }
 
 static void dump_event_texts(unsigned char *ev)
@@ -232,6 +248,20 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
                 fflush(stderr);
             }
         }
+        /* 联想事件（sequel 结果）：组词解析无果时按 b+0x08 形态提取 */
+        {
+            wxime_candidate tmp[WXIME_SNAP_MAX];
+            int n = parse_sequel_words(ev, tmp, WXIME_SNAP_MAX);
+            if (n > 0) {
+                int m = n > WXIME_SNAP_MAX ? WXIME_SNAP_MAX : n;
+                for (int i = 0; i < m; i++) g_seq[i] = tmp[i];
+                InterlockedExchange(&g_seq_n, m);
+                InterlockedExchange(&g_seq_ready, 1);
+                fprintf(stderr, "[wxhost] listener: 联想词表 %d 个（首=\"%s\"）\n",
+                        n, g_seq[0].word);
+                fflush(stderr);
+            }
+        }
         dump_event_texts(ev);   /* 诊断：WXHOST_DUMP_EV=1 时扫组词事件文本 */
         InterlockedDecrement(&g_listener_busy);
         return 0;
@@ -284,6 +314,17 @@ void wxime_event_attach(void *session, wxime_get_candidates_fn get_candidates)
             GetModuleHandleA("libwxhld.dll"), "wxime_add_session_listener");
     add(session, (void *)wx_listener, NULL);
     wxime_log("listener 已挂");
+}
+
+int wxime_poll_sequel(wxime_candidate *out, int max)
+{
+    if (InterlockedExchange(&g_seq_ready, 0)) {
+        int n = g_seq_n;
+        if (n > max) n = max;
+        for (int i = 0; i < n; i++) out[i] = g_seq[i];
+        return g_seq_n;
+    }
+    return 0;
 }
 
 int wxime_poll_candidates(wxime_candidate *out, int max)

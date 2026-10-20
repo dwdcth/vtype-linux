@@ -29,6 +29,9 @@ void wxime_event_attach(void *session, wxime_get_candidates_fn get_candidates);
  * 返回候选数（0=自上次取走后无候选更新），拷贝进 out（至多 max 个）。 */
 int wxime_poll_candidates(wxime_candidate *out, int max);
 
+/* 取走联想词表快照（sequel 结果，无选词凭证，展示/本地拼词用） */
+int wxime_poll_sequel(wxime_candidate *out, int max);
+
 /* 诊断：listener 期间累计的枚举/门统计（复位数） */
 int wxime_event_stats(int *enum_events, int *skipped_events);
 

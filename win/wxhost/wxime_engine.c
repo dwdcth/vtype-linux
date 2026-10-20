@@ -442,6 +442,38 @@ int wxime_set_hot_word(wxime_engine *eng, const char *s2, int s2len,
     return r;
 }
 
+/* ---------------- 联想（get_most_likely_sequel） ----------------
+ * 官方 server 两处调用形态合成：
+ *   ① set_text_around_cursor(session, before,beforeLen, sel,selLen,
+ *        after,afterLen, int)（1401af64a 现场：rdx/r8d、r9/栈0x20、
+ *        栈0x28/0x30 三对 {ptr,len} + 栈0x38 int）
+ *   ② set_bool_option(session, 0xE, 1) 开联想开关（1401aeed0 适配层）
+ *   ③ get_most_likely_sequel(session)（返回 BOOL，结果异步推事件） */
+typedef int (*wxime_set_text_around_fn)(void *, const char *, int,
+                                        const char *, int,
+                                        const char *, int, int);
+typedef int (*wxime_set_bool_opt_fn)(void *, int, unsigned char);
+typedef int (*wxime_sequel_fn)(void *);
+
+int wxime_query_sequel(wxime_session *s, const char *before)
+{
+    HMODULE dll = s->eng->dll;
+    wxime_set_text_around_fn txt =
+        (wxime_set_text_around_fn)(uintptr_t)GetProcAddress(dll, "wxime_set_text_around_cursor");
+    wxime_set_bool_opt_fn opt =
+        (wxime_set_bool_opt_fn)(uintptr_t)GetProcAddress(dll, "wxime_session_set_bool_option");
+    wxime_sequel_fn seq =
+        (wxime_sequel_fn)(uintptr_t)GetProcAddress(dll, "wxime_get_most_likely_sequel");
+    if (!txt || !opt || !seq) return -1;
+    for (int i = 0; i < 100 && !wxime_event_listener_idle(); i++) Sleep(2);
+    int bl = before ? (int)strlen(before) : 0;
+    int t = txt(s->handle, before, bl, "", 0, "", 0, 0);
+    opt(s->handle, 0xE, 1);
+    int r = seq(s->handle);
+    wxime_log("text_around(\"%s\")->%d opt+sequel -> %d", before ? before : "", t, r);
+    return r;
+}
+
 int wxime_session_reset(wxime_session *s)
 {
     wxime_destroy_session_fn destroy =
