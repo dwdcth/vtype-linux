@@ -1,0 +1,11 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto2";
+package wetype.ipc;
+
+message IPCPathInfo {
+  optional uint32 protocol_version = 4;
+  optional string product_version = 5;
+  optional string key = 1;
+  optional uint32 process_id = 2;
+  optional uint32 thread_id = 3;
+}

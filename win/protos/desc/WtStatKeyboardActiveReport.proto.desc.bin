@@ -1,0 +1,40 @@
+
+ WtStatKeyboardActiveReport.protocom.tencent.wrbus.pbBaseMsg.proto&WtStatKeyboardActiveActionSecond.protoWtKeyboardType.protoWtStatCandidateScene.protoWtKeyboardShowMode.proto%WtKeyboardLandscapePortraitMode.proto WtStatKeyboardActiveAction.proto"­
+WtStatKeyboardActiveReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+engine_version (	
+
+dict_infos (	;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType
+device_type (	
+plus_status (
+plus_typing_status (
+plus_media_status (
+plus_emoji_status	 (
+plus_correction_status
+ (
+	bundle_id (	=
+	app_scene (2*.com.tencent.wrbus.pb.WtStatCandidateScene 
+client_performance_score ( 
+client_performance_level (?
+keyboard_mode (2(.com.tencent.wrbus.pb.WtKeyboardShowModeV
+landscape_portrait_mode (25.com.tencent.wrbus.pb.WtKeyboardLandscapePortraitMode
+plus_aiwrite_status (
+window_status (@
+action (20.com.tencent.wrbus.pb.WtStatKeyboardActiveActionK
+action_type (26.com.tencent.wrbus.pb.WtStatKeyboardActiveActionSecond
+
+a_b_params (	
+
+session_id (	
+memory (
+
+process_id (	 
+symbol_auto_match_button (
+device_info (	
+switch_type (
+is_chat (
+
+last_crash (
+button_status (	
+tool_status (bproto3

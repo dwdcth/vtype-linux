@@ -1,0 +1,64 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package wetype.pb.askai;
+
+enum CmdId {
+  CmdTypeUnknown = 0;
+  CmdTypeStartPage = 1;
+  CmdTypeMultiTurn = 2;
+}
+
+message BaseReq {
+  uint64 id = 1;
+  uint64 uin = 2;
+  int32 cmd = 3;
+  wetype.pb.askai.Header header = 4;
+  bytes body = 5;
+}
+
+message HeaderItem {
+  string key = 1;
+  string val = 2;
+}
+
+message Header {
+  repeated wetype.pb.askai.HeaderItem header = 1;
+}
+
+message BaseRsp {
+  uint64 id = 1;
+  uint64 uin = 2;
+  int32 cmd = 3;
+  int32 code = 4;
+  wetype.pb.askai.Header header = 5;
+  bytes body = 6;
+}
+
+message CmdReq {
+  wetype.pb.askai.CmdId cmd_id = 1;
+  bytes data = 2;
+}
+
+message CmdResp {
+  uint32 err_code = 1;
+  string err_msg = 2;
+  bytes data = 3;
+}
+
+message CmdStartPageReq {
+  string res_key = 1;
+  bool is_used = 2;
+}
+
+message CmdStartPageResp {
+  string res_key = 1;
+  bool is_changed = 2;
+  string html = 3;
+}
+
+message CmdMultiTurnReq {
+}
+
+message CmdMultiTurnResp {
+  string html = 1;
+}

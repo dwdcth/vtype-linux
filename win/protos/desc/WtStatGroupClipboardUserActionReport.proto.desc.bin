@@ -1,0 +1,19 @@
+
+*WtStatGroupClipboardUserActionReport.protocom.tencent.wrbus.pbBaseMsg.proto"ÿ
+$WtStatGroupClipboardUserActionReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+group_id (
+vid_list (	
+data_id (	
+type (
+clipboard_type (
+receive_timestamp (
+upload_cost (
+send_timestamp	 (%
+receive_timestamp_from_server
+ (
+show_timestamp (
+download_cost (
+state (
+size (
+trace_id (	bproto3

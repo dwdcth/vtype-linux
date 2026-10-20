@@ -1,0 +1,37 @@
+
+ WtStatRefetchContextReport.protocom.tencent.wrbus.pbBaseMsg.proto"¡
+WtStatRefetchContextReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+	bundle_id (	
+refetch_count (
+
+a_b_params (	
+
+cycle_mode (	
+cycle_end_reason (	
+	key_count (
+content_mismatch_count (!
+punct_after_refetch_count	 (
+english_boundary_count
+ (
+diff_rate_permille (
+failed_refetch_count (!
+before_diff_rate_permille (
+rollback_failed_count (*
+"cursor_weighted_diff_rate_permille (
+flow_abnormal_count (%
+caret_sequence_mismatch_count (#
+caret_send_incomplete_count ( 
+cleanup_unresolved_count (%
+cleanup_skipped_pending_count ($
+cleanup_target_invalid_count ('
+cleanup_validation_failed_count (!
+cleanup_send_failed_count (#
+flow_cooldown_trigger_count (&
+cleanup_cooldown_trigger_count (#
+circuit_breaker_enter_count ( 
+refetch_suppressed_count (!
+flow_cooldown_seconds_min (!
+flow_cooldown_seconds_max ($
+cleanup_cooldown_seconds_min ($
+cleanup_cooldown_seconds_max  (bproto3

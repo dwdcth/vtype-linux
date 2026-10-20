@@ -1,0 +1,18 @@
+
+'WtStatCommonTermsUserActionReport.protocom.tencent.wrbus.pbBaseMsg.protoWtKeyboardType.protoWtStatCommonTermsAction.proto"ñ
+!WtStatCommonTermsUserActionReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+
+dict_infos (	;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType
+engine_version (	=
+action (2-.com.tencent.wrbus.pb.WtStatCommonTermsAction
+term_id (	
+action_context (	
+send_id (	
+
+request_id	 (	
+	bundle_id
+ (	
+
+item_index (bproto3

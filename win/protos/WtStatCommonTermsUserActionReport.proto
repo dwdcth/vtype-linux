@@ -1,0 +1,20 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtKeyboardType.proto";
+import "WtStatCommonTermsAction.proto";
+
+message WtStatCommonTermsUserActionReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string dict_infos = 2;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 3;
+  string engine_version = 4;
+  com.tencent.wrbus.pb.WtStatCommonTermsAction action = 5;
+  string term_id = 6;
+  string action_context = 7;
+  string send_id = 8;
+  string request_id = 9;
+  string bundle_id = 10;
+  int64 item_index = 11;
+}

@@ -1,0 +1,38 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+
+message WtStatRefetchContextReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string bundle_id = 2;
+  int64 refetch_count = 3;
+  string a_b_params = 4;
+  string cycle_mode = 5;
+  string cycle_end_reason = 6;
+  int64 key_count = 7;
+  int64 content_mismatch_count = 8;
+  int64 punct_after_refetch_count = 9;
+  int64 english_boundary_count = 10;
+  int64 diff_rate_permille = 11;
+  int64 failed_refetch_count = 12;
+  int64 before_diff_rate_permille = 13;
+  int64 rollback_failed_count = 14;
+  int64 cursor_weighted_diff_rate_permille = 15;
+  int64 flow_abnormal_count = 16;
+  int64 caret_sequence_mismatch_count = 17;
+  int64 caret_send_incomplete_count = 18;
+  int64 cleanup_unresolved_count = 20;
+  int64 cleanup_skipped_pending_count = 21;
+  int64 cleanup_target_invalid_count = 22;
+  int64 cleanup_validation_failed_count = 23;
+  int64 cleanup_send_failed_count = 24;
+  int64 flow_cooldown_trigger_count = 25;
+  int64 cleanup_cooldown_trigger_count = 26;
+  int64 circuit_breaker_enter_count = 27;
+  int64 refetch_suppressed_count = 28;
+  int64 flow_cooldown_seconds_min = 29;
+  int64 flow_cooldown_seconds_max = 30;
+  int64 cleanup_cooldown_seconds_min = 31;
+  int64 cleanup_cooldown_seconds_max = 32;
+}

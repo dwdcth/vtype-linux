@@ -1,0 +1,13 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+
+enum WtAiQuestionSource {
+  wt_ai_question_source_invalid = 0;
+  wt_ai_question_source_esc = 1;
+  wt_ai_question_source_delete = 2;
+  wt_ai_question_source_else_panel = 3;
+  wt_ai_question_source_else = 4;
+  wt_ai_question_source_return = 5;
+  wt_ai_question_source_input = 6;
+}

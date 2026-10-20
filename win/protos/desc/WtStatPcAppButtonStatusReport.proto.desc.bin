@@ -1,0 +1,54 @@
+
+#WtStatPcAppButtonStatusReport.protocom.tencent.wrbus.pbBaseMsg.protoWtKeyboardType.proto"õ
+WtStatPcAppButtonStatusReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+plus_button (!
+symbol_auto_switch_button ( 
+symbol_auto_match_button (#
+chinese_serial_comma_button (
+vague_input_button (
+status_window_button (
+add_space_button (
+chinese_english_space	 (
+chinese_number_space
+ (;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType&
+shuangpin_keyboard_type_detail (	!
+wubi_keyboard_type_detail (	$
+wubi_keyboard_type_reference (	
+fontsize (	
+appearance_mode (	%
+chinese_switch_english_button ($
+switch_chinese_english_shift (#
+switch_chinese_english_ctrl ((
+ switch_chinese_english_ctrlspace (%
+switch_traditional_simplified (
+switch_full_half_button (
+english_symbol_button (
+minus_to_flip_button (
+brackets_to_flip_button (
+comma_to_flip_button (
+tab_to_flip_button ("
+semicolon_to_choose_button (
+command_to_choose (
+auto_sequence (
+default_lanuage (	
+always_english_punction  (
+keep_lanuage_type! (
+clipboard_button" (
+autoupdate_button# ($
+small_emoji_recommend_button$ ( 
+kaomoji_recommend_button% (
+emoji_recommend_button& (
+ai_question_button' (!
+vague_input_detail_button( (	
+v_mode_button) (
+auto_refinement_button* (
+voice_hold_button+ (
+voice_hands_free_button, (
+voice_hold_shortcut- (	!
+voice_hands_free_shortcut. (	
+voice_punc_setting/ (	
+toolbar_voice_button0 ( 
+recording_summary_button1 ((
+ toolbar_recording_summary_button2 (bproto3

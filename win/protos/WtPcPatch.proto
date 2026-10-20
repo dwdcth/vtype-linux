@@ -1,0 +1,23 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtPcPatchErrorType.proto";
+
+message WtPcPatch {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string local_version = 2;
+  string patch_version = 3;
+  int64 unexpected_user_input = 4;
+  com.tencent.wrbus.pb.WtPcPatchErrorType result = 5;
+  string context = 6;
+  int64 launch_time = 7;
+  int64 prepare_duration_ms = 8;
+  int64 copy_file_duration_ms = 9;
+  int64 update_ver_duration_ms = 10;
+  int64 clear_file_duration_ms = 11;
+  int64 total_duration_ms = 12;
+  string cpu_name = 13;
+  string cpu_detail = 14;
+  int64 firewall_duration_ms = 15;
+}

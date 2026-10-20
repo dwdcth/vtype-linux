@@ -1,0 +1,24 @@
+
+WtAndroidMemeryAbout.protocom.tencent.wrbus.pbBaseMsg.proto"œ
+WtAndroidMemeryAbout/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+totalMemory (
+
+freeMemory (
+	maxMemory (
+nativeAllocatedSize (
+nativeHeapSize (
+nativeFreeSize (
+	useMemory (
+process	 (	
+amsPss
+ (	
+dbgPss (	
+processInfo (	
+
+statusInfo (	
+
+systemInfo (	
+isForeground (
+process_open_time_diff (
+device_type (	bproto3

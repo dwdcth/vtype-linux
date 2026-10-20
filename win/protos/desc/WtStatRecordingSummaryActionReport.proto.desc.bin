@@ -1,0 +1,51 @@
+
+(WtStatRecordingSummaryActionReport.protocom.tencent.wrbus.pbBaseMsg.proto"WtStatRecordingSummaryAction.proto!WtStatRecordingSummaryScene.protoWtKeyboardType.proto"‘	
+"WtStatRecordingSummaryActionReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType
+engine_version (	B
+action (22.com.tencent.wrbus.pb.WtStatRecordingSummaryAction@
+scene (21.com.tencent.wrbus.pb.WtStatRecordingSummaryScene
+	bundle_id (	
+enter_source (	
+origin_source (	
+view_session_id	 (	
+recording_session_id
+ (	
+
+summary_id (	
+
+request_id (	
+voice_request_id (	
+history_cnts (
+result (	
+fail_reason (	
+html_version (
+summary_stage (	
+summary_status (	
+asr_word_cnts (
+html_word_cnts (
+is_html_triggered (
+
+bs_cost_ms (
+load_duration (
+duration_ms (
+
+end_reason (	
+end_surface (	
+is_end_flag (
+index (
+is_history_summary (
+active_duration_ms (
+final_html_duration_ms  ("
+recording_left_duration_ms! (
+	is_scroll" (
+	max_depth# (
+is_read_complete$ (
+push_id% (	
+	push_type& (	
+badge_id' (	
+share_channel( (	
+is_wechat_evoked) (
+action_context* (	
+end_duration+ (bproto3

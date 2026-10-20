@@ -1,0 +1,44 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtStatKeyboardActiveActionSecond.proto";
+import "WtKeyboardType.proto";
+import "WtStatCandidateScene.proto";
+import "WtKeyboardShowMode.proto";
+import "WtKeyboardLandscapePortraitMode.proto";
+import "WtStatKeyboardActiveAction.proto";
+
+message WtStatKeyboardActiveReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string engine_version = 2;
+  string dict_infos = 3;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 4;
+  string device_type = 5;
+  int64 plus_status = 6;
+  int64 plus_typing_status = 7;
+  int64 plus_media_status = 8;
+  int64 plus_emoji_status = 9;
+  int64 plus_correction_status = 10;
+  string bundle_id = 11;
+  com.tencent.wrbus.pb.WtStatCandidateScene app_scene = 12;
+  int64 client_performance_score = 13;
+  int64 client_performance_level = 14;
+  com.tencent.wrbus.pb.WtKeyboardShowMode keyboard_mode = 15;
+  com.tencent.wrbus.pb.WtKeyboardLandscapePortraitMode landscape_portrait_mode = 16;
+  int64 plus_aiwrite_status = 17;
+  int64 window_status = 18;
+  com.tencent.wrbus.pb.WtStatKeyboardActiveAction action = 19;
+  com.tencent.wrbus.pb.WtStatKeyboardActiveActionSecond action_type = 20;
+  string a_b_params = 21;
+  string session_id = 22;
+  int64 memory = 23;
+  string process_id = 24;
+  int64 symbol_auto_match_button = 25;
+  string device_info = 26;
+  int64 switch_type = 27;
+  int64 is_chat = 28;
+  int64 last_crash = 29;
+  string button_status = 30;
+  int64 tool_status = 31;
+}

@@ -1,0 +1,51 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtKeyboardType.proto";
+import "WtStatCandidateScene.proto";
+
+message WtStatCandidateClickReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string candidate_word = 2;
+  int64 candidate_index = 3;
+  int64 candidate_source = 4;
+  string candidate_input = 5;
+  string candidate_top_source = 6;
+  string candidate_top_words = 7;
+  string engine_version = 8;
+  string dict_info = 9;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 10;
+  int64 user_dict_size = 11;
+  string edittext_content = 12;
+  string app_name = 13;
+  com.tencent.wrbus.pb.WtStatCandidateScene app_scene = 14;
+  string last_app_name = 15;
+  int64 client_performance_level = 16;
+  int64 cloud_service_version = 17;
+  int64 is_chat = 18;
+  string user_feature = 19;
+  int64 candidate_type = 20;
+  string candidate_top_type = 21;
+  string a_b_params = 22;
+  string label = 23;
+  int64 candidate_flag = 24;
+  string candidate_top_flag = 25;
+  int64 candidate_word_length = 26;
+  int64 candidate_strokes_num = 27;
+  int64 candidate_click_source = 28;
+  int64 duration = 29;
+  int64 engine_duration = 30;
+  string word_frequency_tag = 31;
+  int64 candidate_input_scene = 32;
+  int64 candidate_input_sequence_length = 33;
+  string request_id = 34;
+  double user_dict_usage = 35;
+  int64 is_single_top_50 = 36;
+  string a_b_hits = 37;
+  int64 typing_num = 38;
+  string exposure_candidate_extra_infos = 39;
+  string click_candidate_extra_infos = 40;
+  string exposure_top5_records = 41;
+  int64 is_first_screen = 42;
+}

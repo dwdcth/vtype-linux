@@ -80,10 +80,13 @@ private:
 
 // ---------------------------------------------------------------- 引擎目录解析
 static void resolveDirs(std::string &eng, std::string &dicts, std::string &work,
-                        std::string &qemu, std::string &sysroot) {
+                        std::string &qemu, std::string &sysroot, std::string &winHost) {
     auto existsEngine = [](const std::string &p) {
         return ::access((p + "/wetype-harness").c_str(), X_OK) == 0 &&
                ::access((p + "/lib/libwxhld_jni.so").c_str(), R_OK) == 0;
+    };
+    auto existsWinHost = [](const std::string &p) {
+        return ::access((p + "/wetype_win_host.exe").c_str(), R_OK) == 0;
     };
     const char *home = getenv("HOME") ? getenv("HOME") : "/root";
     eng = getenv("WETYPE_ENGINE_DIR") ? getenv("WETYPE_ENGINE_DIR") : "";
@@ -97,6 +100,15 @@ static void resolveDirs(std::string &eng, std::string &dicts, std::string &work,
         }
     }
     dicts = getenv("WETYPE_DICT_DIR") ? getenv("WETYPE_DICT_DIR") : eng + "/dicts";
+    // wine 路线（Windows 引擎 + wetype_win_host.exe）：显式指定即启用；
+    // 未显式指定时仅当 ARM64 引擎不可用而 win64 目录在时兜底启用。
+    winHost.clear();
+    const char *winEnv = getenv("WETYPE_WIN_ENGINE_DIR");
+    const std::string winDir = winEnv && *winEnv
+                                   ? std::string(winEnv)
+                                   : std::string(home) + "/.local/lib/wetype-ime/win64";
+    if (existsWinHost(winDir) && ((winEnv && *winEnv) || !existsEngine(eng)))
+        winHost = winDir;
     // QEMU 随安装一起提供，缺失时回落到系统包；bionic 运行时只随安装提供。
     // ARM64 宿主没有 QEMU 时 qemu 为空，表示直接运行 harness。
     qemu = getenv("QEMU_AARCH64") ? getenv("QEMU_AARCH64") : "";
@@ -152,15 +164,16 @@ public:
             if (!gaveUp_) { WLOG("engine gave up after %d failures\n", failCount_); gaveUp_ = true; }
             return false;
         }
-        std::string eng, dicts, work, qemu, sysroot;
-        resolveDirs(eng, dicts, work, qemu, sysroot);
+        std::string eng, dicts, work, qemu, sysroot, winHost;
+        resolveDirs(eng, dicts, work, qemu, sysroot, winHost);
+        const bool wineMode = !winHost.empty();
         const char *explicitCloud=getenv("WETYPE_CLOUD_CONFIG");
         const char *configHome=getenv("XDG_CONFIG_HOME");
         const std::string configBase=configHome && *configHome ? configHome : std::string(getenv("HOME"))+"/.config";
         const std::string cloudConfig=explicitCloud ? explicitCloud : configBase+"/wetype-ime/cloud.json";
-        cloudConfigured_=!qemu.empty() && access(cloudConfig.c_str(),R_OK)==0 &&
+        cloudConfigured_=!qemu.empty() && !wineMode && access(cloudConfig.c_str(),R_OK)==0 &&
             access((eng+"/cloud_proxy.py").c_str(),R_OK)==0;
-        learningFile_ = work + "/../sync-control/learning-generation";
+        learningFile_ = wineMode ? "" : work + "/../sync-control/learning-generation";
         // 路径解析与轮转都在父进程做完, 子进程只保留一次 open。
         const std::string harnessLog = prepareHarnessLog();
         const std::string doublePin = std::to_string(doublePinSolution_);
@@ -201,6 +214,19 @@ public:
             setenv("WETYPE_DICT_DIR", dicts.c_str(), 1);
             setenv("WETYPE_ASSET_DIR", dicts.c_str(), 1);
             setenv("WETYPE_WORK_DIR", work.c_str(), 1);
+            if (!winHost.empty()) {
+                // wine 路线：宿主是 PE（win/host/wetype_win_host.c 编译产物），
+                // 负责行协议↔session_v2 管道翻译，管道不在时自己拉起 wetype_server.exe。
+                // 前缀目录随发行树（eng/prefix），不存在则用 wine 默认。
+                setenv("WINEDEBUG", "-all", 1);
+                std::string pfx = winHost + "/prefix";
+                struct stat st;
+                if (::stat(pfx.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
+                    setenv("WINEPREFIX", pfx.c_str(), 1);
+                execlp("wine", "wine",
+                       (winHost + "/wetype_win_host.exe").c_str(), (char *)nullptr);
+                _exit(127);
+            }
             if (qemu.empty()) {
                 // ARM64 host: exec the harness directly. Its ELF interpreter is set at
                 // install time to the bundled sysroot/system/bin/linker64 (patchelf).
@@ -456,8 +482,8 @@ public:
         commonPhrases_.setPath(dataHome + "/wetype-ime/common-phrases.bin");
         const std::size_t glossCount = glossary_.load(dataHome + "/wetype-ime/glossary-en.tsv");
         if (glossCount) WLOG("glossary loaded: %zu entries\n", glossCount);
-        std::string eng, dicts, work, qemu, sysroot;
-        resolveDirs(eng, dicts, work, qemu, sysroot);
+        std::string eng, dicts, work, qemu, sysroot, winHost;
+        resolveDirs(eng, dicts, work, qemu, sysroot, winHost);
         syncDir_ = work + "/../sync-control";
         wetype::mkdirParents(syncDir_);
         chmod(syncDir_.c_str(), 0700);

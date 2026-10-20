@@ -1,0 +1,20 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtExceptionSubtype.proto";
+import "WtExceptionType.proto";
+
+message WtExceptionEventReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  com.tencent.wrbus.pb.WtExceptionType type = 2;
+  int64 intExtra = 3;
+  int64 memory = 4;
+  int64 process_duration = 5;
+  string machine = 6;
+  string stringExtra = 7;
+  com.tencent.wrbus.pb.WtExceptionSubtype subtype = 8;
+  string extraInfo = 9;
+  string osVersion = 10;
+  int64 intExtra2 = 11;
+}

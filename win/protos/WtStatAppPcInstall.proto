@@ -1,0 +1,19 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtAppPcInstallSource.proto";
+
+message WtStatAppPcInstall {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  com.tencent.wrbus.pb.WtAppPcInstallSource source = 2;
+  string bundle_id = 3;
+  string cpu_type = 4;
+  int64 cpu_core_num = 5;
+  int64 disk_space_total = 6;
+  int64 disk_space_remain = 7;
+  int64 memory_total = 8;
+  int64 memory__remain = 9;
+  string cpu_name = 10;
+  string cpu_detail = 11;
+}

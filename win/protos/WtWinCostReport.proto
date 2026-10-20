@@ -1,0 +1,34 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtKeyboardType.proto";
+
+message WtWinCostReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string device_type = 2;
+  int64 version = 3;
+  int64 process_id = 4;
+  string process_name = 5;
+  int64 key_type = 6;
+  int64 first_show = 7;
+  int64 session_id = 8;
+  int64 input_interval = 9;
+  int64 press_process_cost = 10;
+  int64 candidate_prepare_cost = 11;
+  int64 candidate_trans_cost = 12;
+  int64 load_more_send_cost = 13;
+  int64 more_prepare_cost = 14;
+  int64 more_trans_cost = 15;
+  int64 more_process_cost = 16;
+  int64 ui_trans_cost = 17;
+  int64 ui_render_cost = 18;
+  int64 total_cost = 19;
+  int64 pending_len = 20;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 21;
+  int64 session_lifetime = 22;
+  int64 sys_cpu_usage = 23;
+  int64 sys_mem_usage = 24;
+  int64 sys_available_mem = 25;
+  int64 sys_disk_active_time = 26;
+}

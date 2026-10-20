@@ -1,0 +1,12 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtKeyboardType.proto";
+
+message WtStatKeyboardLostReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string bundle_id = 2;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 3;
+  string to_bundle_id = 4;
+}

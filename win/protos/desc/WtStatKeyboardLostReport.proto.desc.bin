@@ -1,0 +1,7 @@
+
+WtStatKeyboardLostReport.protocom.tencent.wrbus.pbBaseMsg.protoWtKeyboardType.proto"±
+WtStatKeyboardLostReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+	bundle_id (	;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType
+to_bundle_id (	bproto3

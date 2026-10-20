@@ -1,0 +1,16 @@
+
+WtStatAppPcInstall.protocom.tencent.wrbus.pbBaseMsg.protoWtAppPcInstallSource.proto"Å
+WtStatAppPcInstall/
+base_log (2.com.tencent.wrbus.pb.BaseMsg:
+source (2*.com.tencent.wrbus.pb.WtAppPcInstallSource
+	bundle_id (	
+cpu_type (	
+cpu_core_num (
+disk_space_total (
+disk_space_remain (
+memory_total (
+memory__remain	 (
+cpu_name
+ (	
+
+cpu_detail (	bproto3

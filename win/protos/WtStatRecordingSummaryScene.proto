@@ -1,0 +1,14 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+
+enum WtStatRecordingSummaryScene {
+  recording_summary_scene_recording_page = 0;
+  recording_summary_scene_normal_asr = 1;
+  recording_summary_scene_history_list = 2;
+  recording_summary_scene_html_detail = 3;
+  recording_summary_scene_ori_text = 4;
+  recording_summary_scene_share_panel = 5;
+  recording_summary_scene_notification = 6;
+  recording_summary_scene_gate = 7;
+}

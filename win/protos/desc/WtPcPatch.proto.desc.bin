@@ -1,0 +1,20 @@
+
+WtPcPatch.protocom.tencent.wrbus.pbBaseMsg.protoWtPcPatchErrorType.proto"Ä
+	WtPcPatch/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+local_version (	
+patch_version (	
+unexpected_user_input (8
+result (2(.com.tencent.wrbus.pb.WtPcPatchErrorType
+context (	
+launch_time (
+prepare_duration_ms (
+copy_file_duration_ms	 (
+update_ver_duration_ms
+ (
+clear_file_duration_ms (
+total_duration_ms (
+cpu_name (	
+
+cpu_detail (	
+firewall_duration_ms (bproto3

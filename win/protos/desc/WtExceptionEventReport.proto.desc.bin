@@ -1,0 +1,15 @@
+
+WtExceptionEventReport.protocom.tencent.wrbus.pbBaseMsg.protoWtExceptionSubtype.protoWtExceptionType.proto"Ô
+WtExceptionEventReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg3
+type (2%.com.tencent.wrbus.pb.WtExceptionType
+intExtra (
+memory (
+process_duration (
+machine (	
+stringExtra (	9
+subtype (2(.com.tencent.wrbus.pb.WtExceptionSubtype
+	extraInfo	 (	
+	osVersion
+ (	
+	intExtra2 (bproto3

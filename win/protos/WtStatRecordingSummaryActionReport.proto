@@ -1,0 +1,53 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtStatRecordingSummaryAction.proto";
+import "WtStatRecordingSummaryScene.proto";
+import "WtKeyboardType.proto";
+
+message WtStatRecordingSummaryActionReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 2;
+  string engine_version = 3;
+  com.tencent.wrbus.pb.WtStatRecordingSummaryAction action = 4;
+  com.tencent.wrbus.pb.WtStatRecordingSummaryScene scene = 5;
+  string bundle_id = 6;
+  string enter_source = 7;
+  string origin_source = 8;
+  string view_session_id = 9;
+  string recording_session_id = 10;
+  string summary_id = 11;
+  string request_id = 12;
+  string voice_request_id = 13;
+  int64 history_cnts = 14;
+  string result = 15;
+  string fail_reason = 16;
+  int64 html_version = 17;
+  string summary_stage = 18;
+  string summary_status = 19;
+  int64 asr_word_cnts = 20;
+  int64 html_word_cnts = 21;
+  int64 is_html_triggered = 22;
+  int64 bs_cost_ms = 23;
+  int64 load_duration = 24;
+  int64 duration_ms = 25;
+  string end_reason = 26;
+  string end_surface = 27;
+  int64 is_end_flag = 28;
+  int64 index = 29;
+  int64 is_history_summary = 30;
+  int64 active_duration_ms = 31;
+  int64 final_html_duration_ms = 32;
+  int64 recording_left_duration_ms = 33;
+  int64 is_scroll = 34;
+  int64 max_depth = 35;
+  int64 is_read_complete = 36;
+  string push_id = 37;
+  string push_type = 38;
+  string badge_id = 39;
+  string share_channel = 40;
+  int64 is_wechat_evoked = 41;
+  string action_context = 42;
+  int64 end_duration = 43;
+}

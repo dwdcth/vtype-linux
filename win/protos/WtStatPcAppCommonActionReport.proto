@@ -1,0 +1,30 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtStatPcAppCommonAction.proto";
+import "WtVmodeSource.proto";
+import "WtStatPcAppCommonScene.proto";
+
+message WtStatPcAppCommonActionReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  com.tencent.wrbus.pb.WtStatPcAppCommonScene scene = 2;
+  com.tencent.wrbus.pb.WtStatPcAppCommonAction action = 3;
+  string action_context = 4;
+  string device_type = 5;
+  int64 plus_status = 6;
+  string bundle_id = 7;
+  int64 window_status = 8;
+  string action_context_extra = 9;
+  string autoupdate_failed_version = 10;
+  double enter_source = 11;
+  com.tencent.wrbus.pb.WtVmodeSource source = 12;
+  int64 content_type = 13;
+  int64 paste_time = 14;
+  int64 index = 15;
+  int64 symbol_type = 16;
+  int64 symbol_panel_duration = 17;
+  string symbol_index = 18;
+  string symbol_sub_type = 19;
+  string symbol_name = 20;
+}

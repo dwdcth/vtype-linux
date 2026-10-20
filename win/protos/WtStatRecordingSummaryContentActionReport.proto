@@ -1,0 +1,39 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtStatRecordingSummaryScene.proto";
+import "WtKeyboardType.proto";
+import "WtStatRecordingSummaryAction.proto";
+
+message WtStatRecordingSummaryContentActionReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 2;
+  string engine_version = 3;
+  com.tencent.wrbus.pb.WtStatRecordingSummaryAction action = 4;
+  com.tencent.wrbus.pb.WtStatRecordingSummaryScene scene = 5;
+  string voice_id = 6;
+  int64 html_version = 7;
+  string summary_stage = 8;
+  string summary_status = 9;
+  string origin_source = 10;
+  string enter_source = 11;
+  string bundle_id = 12;
+  int64 index = 13;
+  int64 is_history_summary = 14;
+  int64 asr_word_cnts = 15;
+  int64 html_word_cnts = 16;
+  int64 active_duration_ms = 17;
+  int64 final_html_duration_ms = 18;
+  int64 recording_left_duration_ms = 19;
+  int64 is_scroll = 20;
+  int64 max_depth = 21;
+  int64 is_read_complete = 22;
+  string share_channel = 23;
+  string result = 24;
+  string html_url = 25;
+  string share_token = 26;
+  string html_title = 27;
+  string action_context = 28;
+  int64 end_duration = 29;
+}

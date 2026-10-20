@@ -1,0 +1,39 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+
+enum WtPcPatchErrorType {
+  wt_pc_patch_error_unknown = 0;
+  wt_pc_patch_ok = 1;
+  wt_pc_patch_error_download = 2;
+  wt_pc_patch_error_check_env = 3;
+  wt_pc_patch_error_clear_target_path = 4;
+  wt_pc_patch_error_write_file = 5;
+  wt_pc_patch_error_kill_process = 6;
+  wt_pc_patch_error_registry = 7;
+  wt_pc_patch_error_commit_transaction = 8;
+  wt_pc_patch_error_launch_service = 9;
+  wt_pc_patch_error_clear_legacy_files = 10;
+  wt_pc_patch_user_input = 11;
+  wt_pc_patch_error_update_ver = 12;
+  wt_pc_patch_error_firewall = 13;
+  wt_pc_patch_config_received = 14;
+  wt_pc_patch_download_started = 15;
+  wt_pc_patch_download_finished = 16;
+  wt_pc_patch_download_reused = 17;
+  wt_pc_patch_launch_requested = 18;
+  wt_pc_patch_launcher_started = 19;
+  wt_pc_patch_file_moved = 20;
+  wt_pc_patch_process_started = 21;
+  wt_pc_patch_install_started = 22;
+  wt_pc_patch_install_finished = 23;
+  wt_pc_patch_skipped = 24;
+  wt_pc_patch_cancelled = 25;
+  wt_pc_patch_error_config = 26;
+  wt_pc_patch_error_launch_request = 27;
+  wt_pc_patch_error_verify = 28;
+  wt_pc_patch_error_move = 29;
+  wt_pc_patch_error_create_process = 30;
+  wt_pc_patch_error_launcher = 31;
+  wt_pc_patch_error_process_exit = 32;
+}

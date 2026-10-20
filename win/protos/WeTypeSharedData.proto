@@ -1,0 +1,21 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+
+message VoiceSettingsSnapshot {
+  bool smart_summary_enabled = 1;
+  int32 punctuation_mode = 2;
+  string hold_shortcut = 3;
+  string hands_free_shortcut = 4;
+}
+
+message WeTypeSharedData {
+  uint64 uin = 1;
+  bool need_transfer = 2;
+  string device_code_update = 3;
+  string device_code_server = 4;
+  string device_code_engine = 5;
+  string device_code_render = 6;
+  int64 channel_id = 7;
+  com.tencent.wrbus.pb.VoiceSettingsSnapshot voice_settings = 8;
+}

@@ -1,0 +1,24 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+
+message WtAndroidMemeryAbout {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  int64 totalMemory = 2;
+  int64 freeMemory = 3;
+  int64 maxMemory = 4;
+  int64 nativeAllocatedSize = 5;
+  int64 nativeHeapSize = 6;
+  int64 nativeFreeSize = 7;
+  int64 useMemory = 8;
+  string process = 9;
+  string amsPss = 10;
+  string dbgPss = 11;
+  string processInfo = 12;
+  string statusInfo = 13;
+  string systemInfo = 14;
+  int64 isForeground = 15;
+  int64 process_open_time_diff = 16;
+  string device_type = 17;
+}

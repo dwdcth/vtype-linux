@@ -1,0 +1,24 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtVmodeSource.proto";
+import "WtVmodeScene.proto";
+import "WtVmodeAction.proto";
+
+message WtStatVmodeUserActionReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  com.tencent.wrbus.pb.WtVmodeScene scene = 2;
+  com.tencent.wrbus.pb.WtVmodeAction action = 3;
+  com.tencent.wrbus.pb.WtVmodeSource source = 4;
+  int64 panel_result = 5;
+  int64 content_type = 6;
+  int64 index = 7;
+  string click_candidate_infos = 8;
+  int64 click_type = 9;
+  int64 symbol_type = 10;
+  string symbol_sub_type = 11;
+  int64 symbol_panel_duration = 12;
+  string symbol_index = 13;
+  string symbol_name = 14;
+}

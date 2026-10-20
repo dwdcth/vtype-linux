@@ -1,0 +1,15 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+
+enum WtStatVoiceInputPunctuationSetting {
+  voice_punctuation_invalid = 0;
+  voice_punctuation_add_whole_punctuation = 1;
+  voice_punctuation_ignore_period = 2;
+  voice_punctuation_space_replace_punctuation = 3;
+  voice_punctuation_auto_add_punctuation_ignore_period_comma = 4;
+  voice_punctuation_auto_add_punctuation_ignore_period_space = 5;
+  voice_punctuation_auto_add_punctuation_with_period_comma = 6;
+  voice_punctuation_auto_add_punctuation_with_period_space = 7;
+  voice_punctuation_auto_add_punctuation = 8;
+}

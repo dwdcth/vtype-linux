@@ -1,0 +1,38 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+
+enum WtStatRecordingSummaryAction {
+  recording_summary_action_page_exposure = 0;
+  recording_summary_action_gate_exposure = 1;
+  recording_summary_action_gate_click = 2;
+  recording_summary_action_recording_start_click = 3;
+  recording_summary_action_recording_start_result = 4;
+  recording_summary_action_feature_use_start = 5;
+  recording_summary_action_summary_received = 6;
+  recording_summary_action_preview_exposure = 7;
+  recording_summary_action_preview_read_end = 8;
+  recording_summary_action_preview_click = 9;
+  recording_summary_action_preview_close = 10;
+  recording_summary_action_summary_entry_exposure = 11;
+  recording_summary_action_summary_entry_click = 12;
+  recording_summary_action_list_item_exposure = 13;
+  recording_summary_action_list_item_click = 14;
+  recording_summary_action_html_read_end = 15;
+  recording_summary_action_recording_end = 16;
+  recording_summary_action_push_exposure = 17;
+  recording_summary_action_push_click = 18;
+  recording_summary_action_badge_exposure = 19;
+  recording_summary_action_badge_click = 20;
+  recording_summary_action_ori_text_click = 21;
+  recording_summary_action_ori_text_copy = 22;
+  recording_summary_action_share_click = 23;
+  recording_summary_action_share_channel_click = 24;
+  recording_summary_action_share_wechat_status = 25;
+  recording_summary_action_click_delete = 26;
+  recording_summary_action_delete_confirm = 27;
+  recording_summary_action_summary_snapshot = 28;
+  recording_summary_action_edit = 29;
+  recording_summary_action_edit_finish = 30;
+  recording_summary_action_edit_fail = 31;
+}

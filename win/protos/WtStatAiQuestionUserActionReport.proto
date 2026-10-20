@@ -1,0 +1,35 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtAiQuestionSource.proto";
+import "WtKeyboardType.proto";
+import "WtAiQuestionAction.proto";
+import "WtStatCandidateScene.proto";
+
+message WtStatAiQuestionUserActionReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 2;
+  com.tencent.wrbus.pb.WtAiQuestionAction action = 3;
+  string request_id = 4;
+  string send_id = 5;
+  string bundle_id = 6;
+  com.tencent.wrbus.pb.WtStatCandidateScene app_scene = 7;
+  int64 is_chat = 8;
+  int64 panel_status = 9;
+  int64 question_type = 10;
+  int64 content_type = 11;
+  int64 page_stay_duration = 12;
+  int64 panel_stay_duration = 13;
+  com.tencent.wrbus.pb.WtAiQuestionSource source = 14;
+  int64 page_content_load = 15;
+  string item_name = 16;
+  int64 item_index = 17;
+  int64 length = 18;
+  int64 screen_status = 19;
+  string answer_type = 20;
+  string action_source = 21;
+  string sent_type = 22;
+  string bubble_type = 23;
+  int64 answer_load_duration = 24;
+}

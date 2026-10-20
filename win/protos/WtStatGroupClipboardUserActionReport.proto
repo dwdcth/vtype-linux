@@ -1,0 +1,22 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+
+message WtStatGroupClipboardUserActionReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  int64 group_id = 2;
+  string vid_list = 3;
+  string data_id = 4;
+  int64 type = 5;
+  int64 clipboard_type = 6;
+  int64 receive_timestamp = 7;
+  int64 upload_cost = 8;
+  int64 send_timestamp = 9;
+  int64 receive_timestamp_from_server = 10;
+  int64 show_timestamp = 11;
+  int64 download_cost = 12;
+  int64 state = 13;
+  int64 size = 14;
+  string trace_id = 15;
+}

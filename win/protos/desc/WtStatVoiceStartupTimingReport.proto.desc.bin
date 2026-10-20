@@ -1,0 +1,17 @@
+
+$WtStatVoiceStartupTimingReport.protocom.tencent.wrbus.pbBaseMsg.proto"÷
+WtStatVoiceStartupTimingReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+
+request_id (	
+source (
+	bundle_id (	
+capture_mode (	
+startup_path (	
+startup_result (	
+trigger_to_ui_ms (!
+trigger_to_first_audio_ms	 ( 
+device_to_first_audio_ms
+ (&
+trigger_to_first_vad_speech_ms ("
+trigger_to_first_result_ms (bproto3

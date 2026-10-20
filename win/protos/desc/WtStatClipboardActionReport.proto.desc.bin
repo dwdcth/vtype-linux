@@ -1,0 +1,11 @@
+
+!WtStatClipboardActionReport.protocom.tencent.wrbus.pbBaseMsg.protoWtClipboardScene.protoWtClipboardAction.proto"™
+WtStatClipboardActionReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg5
+scene (2&.com.tencent.wrbus.pb.WtClipboardScene7
+action (2'.com.tencent.wrbus.pb.WtClipboardAction
+content (	
+index (
+content_type (
+	clip_time (
+app_name (	bproto3

@@ -1,0 +1,12 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "App.proto";
+
+message BaseMsg {
+  string id = 1;
+  int64 clienttime = 2;
+  string appversion = 3;
+  uint64 vid = 4;
+  com.tencent.wrbus.pb.App app = 5;
+}

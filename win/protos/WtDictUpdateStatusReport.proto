@@ -1,0 +1,28 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+
+message WtDictUpdateStatusReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string engine_version = 2;
+  string dict_infos = 3;
+  int64 api_level = 4;
+  string dict_name = 5;
+  int64 version = 6;
+  int64 type_id = 7;
+  int64 dict_type = 8;
+  string dict_mdfive = 9;
+  int64 experiment_group_id = 10;
+  string cdn_url = 11;
+  string cdn_mdfive = 12;
+  string decrypt_mdfive = 13;
+  int64 decrypt_algorithm = 14;
+  int64 compression_algorithm = 15;
+  int64 patch_version = 16;
+  string patch_cdn_url = 17;
+  int64 patch_error_code = 18;
+  int64 download_time = 19;
+  int64 handle_time = 20;
+  string update_status = 21;
+}

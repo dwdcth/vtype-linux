@@ -1,0 +1,34 @@
+
+$WtStatCandidateUserClickReport.protocom.tencent.wrbus.pbBaseMsg.protoWtKeyboardType.protoWtStatCandidateScene.proto"å
+WtStatCandidateUserClickReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+
+request_id (	
+candidate_index (
+candidate_source (	;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType
+app_name (	
+candidate_top_source (	=
+	app_scene (2*.com.tencent.wrbus.pb.WtStatCandidateScene
+is_chat	 (
+context_len
+ (
+candidate_type (
+candidate_top_type (	
+candidate_flag (
+candidate_top_flag (	
+candidate_word_length (
+candidate_strokes_num (
+candidate_click_source (
+duration (
+engine_duration (
+word_frequency_tag (	
+candidate_input_scene ('
+candidate_input_sequence_length (
+is_single_top_50 (
+a_b_hits (	
+
+typing_num (&
+exposure_candidate_extra_infos (	#
+click_candidate_extra_infos (	
+is_first_screen (bproto3

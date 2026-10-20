@@ -1,0 +1,109 @@
+00000001801eae50 <.text+0x1e9e50>:
+   1801eae50:	48 83 ec 78          	sub    rsp,0x78
+   1801eae54:	48 8b 84 24 d8 00 00 	mov    rax,QWORD PTR [rsp+0xd8]
+   1801eae5b:	00 
+   1801eae5c:	48 89 44 24 60       	mov    QWORD PTR [rsp+0x60],rax
+   1801eae61:	8b 84 24 d0 00 00 00 	mov    eax,DWORD PTR [rsp+0xd0]
+   1801eae68:	89 44 24 58          	mov    DWORD PTR [rsp+0x58],eax
+   1801eae6c:	48 8b 84 24 c8 00 00 	mov    rax,QWORD PTR [rsp+0xc8]
+   1801eae73:	00 
+   1801eae74:	48 89 44 24 50       	mov    QWORD PTR [rsp+0x50],rax
+   1801eae79:	8b 84 24 c0 00 00 00 	mov    eax,DWORD PTR [rsp+0xc0]
+   1801eae80:	c6 44 24 48 00       	mov    BYTE PTR [rsp+0x48],0x0
+   1801eae85:	89 44 24 40          	mov    DWORD PTR [rsp+0x40],eax
+   1801eae89:	48 8b 84 24 b8 00 00 	mov    rax,QWORD PTR [rsp+0xb8]
+   1801eae90:	00 
+   1801eae91:	48 89 44 24 38       	mov    QWORD PTR [rsp+0x38],rax
+   1801eae96:	8b 84 24 b0 00 00 00 	mov    eax,DWORD PTR [rsp+0xb0]
+   1801eae9d:	89 44 24 30          	mov    DWORD PTR [rsp+0x30],eax
+   1801eaea1:	48 8b 84 24 a8 00 00 	mov    rax,QWORD PTR [rsp+0xa8]
+   1801eaea8:	00 
+   1801eaea9:	48 89 44 24 28       	mov    QWORD PTR [rsp+0x28],rax
+   1801eaeae:	8b 84 24 a0 00 00 00 	mov    eax,DWORD PTR [rsp+0xa0]
+   1801eaeb5:	89 44 24 20          	mov    DWORD PTR [rsp+0x20],eax
+   1801eaeb9:	e8 72 19 ff ff       	call   0x1801dc830
+   1801eaebe:	48 83 c4 78          	add    rsp,0x78
+   1801eaec2:	c3                   	ret
+   1801eaec3:	cc                   	int3
+   1801eaec4:	cc                   	int3
+   1801eaec5:	cc                   	int3
+   1801eaec6:	cc                   	int3
+   1801eaec7:	cc                   	int3
+   1801eaec8:	cc                   	int3
+   1801eaec9:	cc                   	int3
+   1801eaeca:	cc                   	int3
+   1801eaecb:	cc                   	int3
+   1801eaecc:	cc                   	int3
+   1801eaecd:	cc                   	int3
+   1801eaece:	cc                   	int3
+   1801eaecf:	cc                   	int3
+   1801eaed0:	48 89 5c 24 08       	mov    QWORD PTR [rsp+0x8],rbx
+   1801eaed5:	4c 89 4c 24 20       	mov    QWORD PTR [rsp+0x20],r9
+   1801eaeda:	44 89 44 24 18       	mov    DWORD PTR [rsp+0x18],r8d
+   1801eaedf:	48 89 54 24 10       	mov    QWORD PTR [rsp+0x10],rdx
+   1801eaee4:	55                   	push   rbp
+   1801eaee5:	48 8d 6c 24 c1       	lea    rbp,[rsp-0x3f]
+   1801eaeea:	48 81 ec a0 00 00 00 	sub    rsp,0xa0
+   1801eaef1:	48 8b d9             	mov    rbx,rcx
+   1801eaef4:	e8 a7 07 6a 00       	call   0x18088b6a0
+   1801eaef9:	83 f8 ff             	cmp    eax,0xffffffff
+   1801eaefc:	7c 23                	jl     0x1801eaf21
+   1801eaefe:	4c 8d 0d 6b d1 c2 00 	lea    r9,[rip+0xc2d16b]        # 0x180e18070
+   1801eaf05:	48 89 5c 24 20       	mov    QWORD PTR [rsp+0x20],rbx
+   1801eaf0a:	41 b8 46 02 00 00    	mov    r8d,0x246
+   1801eaf10:	48 8d 15 99 ca c2 00 	lea    rdx,[rip+0xc2ca99]        # 0x180e179b0
+   1801eaf17:	b9 ff ff ff ff       	mov    ecx,0xffffffff
+   1801eaf1c:	e8 1f 0d 6a 00       	call   0x18088bc40
+   1801eaf21:	e8 6a 84 0c 00       	call   0x1802b3390
+   1801eaf26:	48 8b c8             	mov    rcx,rax
+   1801eaf29:	e8 42 81 0c 00       	call   0x1802b3070
+   1801eaf2e:	4c 8d 45 ff          	lea    r8,[rbp-0x1]
+   1801eaf32:	48 8b d3             	mov    rdx,rbx
+   1801eaf35:	48 8b 08             	mov    rcx,QWORD PTR [rax]
+   1801eaf38:	4c 8b 49 20          	mov    r9,QWORD PTR [rcx+0x20]
+   1801eaf3c:	48 8d 4d 67          	lea    rcx,[rbp+0x67]
+   1801eaf40:	48 89 4d cf          	mov    QWORD PTR [rbp-0x31],rcx
+   1801eaf44:	48 8d 4d 6f          	lea    rcx,[rbp+0x6f]
+   1801eaf48:	48 89 4d d7          	mov    QWORD PTR [rbp-0x29],rcx
+   1801eaf4c:	48 8d 4d 77          	lea    rcx,[rbp+0x77]
+   1801eaf50:	0f 10 45 cf          	movups xmm0,XMMWORD PTR [rbp-0x31]
+   1801eaf54:	48 89 4d df          	mov    QWORD PTR [rbp-0x21],rcx
+   1801eaf58:	48 8d 4d 7f          	lea    rcx,[rbp+0x7f]
+   1801eaf5c:	48 89 4d e7          	mov    QWORD PTR [rbp-0x19],rcx
+   1801eaf60:	48 8d 4d 57          	lea    rcx,[rbp+0x57]
+   1801eaf64:	0f 10 4d df          	movups xmm1,XMMWORD PTR [rbp-0x21]
+   1801eaf68:	48 89 4d ef          	mov    QWORD PTR [rbp-0x11],rcx
+   1801eaf6c:	48 8d 4d 5f          	lea    rcx,[rbp+0x5f]
+   1801eaf70:	48 89 4d f7          	mov    QWORD PTR [rbp-0x9],rcx
+   1801eaf74:	48 8d 0d 3d 11 c3 00 	lea    rcx,[rip+0xc3113d]        # 0x180e1c0b8
+   1801eaf7b:	48 89 4d ff          	mov    QWORD PTR [rbp-0x1],rcx
+   1801eaf7f:	48 8d 4d ff          	lea    rcx,[rbp-0x1]
+   1801eaf83:	0f 11 45 07          	movups XMMWORD PTR [rbp+0x7],xmm0
+   1801eaf87:	48 89 4d 37          	mov    QWORD PTR [rbp+0x37],rcx
+   1801eaf8b:	48 8b c8             	mov    rcx,rax
+   1801eaf8e:	0f 10 45 ef          	movups xmm0,XMMWORD PTR [rbp-0x11]
+   1801eaf92:	0f 11 4d 17          	movups XMMWORD PTR [rbp+0x17],xmm1
+   1801eaf96:	0f 11 45 27          	movups XMMWORD PTR [rbp+0x27],xmm0
+   1801eaf9a:	41 ff d1             	call   r9
+   1801eaf9d:	48 8b 4d 37          	mov    rcx,QWORD PTR [rbp+0x37]
+   1801eafa1:	48 85 c9             	test   rcx,rcx
+   1801eafa4:	74 10                	je     0x1801eafb6
+   1801eafa6:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+   1801eafa9:	48 8d 55 ff          	lea    rdx,[rbp-0x1]
+   1801eafad:	48 3b ca             	cmp    rcx,rdx
+   1801eafb0:	0f 95 c2             	setne  dl
+   1801eafb3:	ff 50 20             	call   QWORD PTR [rax+0x20]
+   1801eafb6:	48 8b 9c 24 b0 00 00 	mov    rbx,QWORD PTR [rsp+0xb0]
+   1801eafbd:	00 
+   1801eafbe:	48 81 c4 a0 00 00 00 	add    rsp,0xa0
+   1801eafc5:	5d                   	pop    rbp
+   1801eafc6:	c3                   	ret
+   1801eafc7:	cc                   	int3
+   1801eafc8:	cc                   	int3
+   1801eafc9:	cc                   	int3
+   1801eafca:	cc                   	int3
+   1801eafcb:	cc                   	int3
+   1801eafcc:	cc                   	int3
+   1801eafcd:	cc                   	int3
+   1801eafce:	cc                   	int3
+   1801eafcf:	cc                   	int3

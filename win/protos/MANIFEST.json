@@ -1,0 +1,702 @@
+{
+  "product_version": "3.0.1.1",
+  "generated_by": "tools/extract_all.py",
+  "files": {
+    "App.proto": {
+      "sha256_16": "8cea26bd42d2e3fd",
+      "size": 137,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe|wetype_installer.exe|wetype_service.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "BaseMsg.proto": {
+      "sha256_16": "185f10a5d19cb3d5",
+      "size": 172,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe|wetype_installer.exe|wetype_service.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "BaseMsg"
+      ]
+    },
+    "WeTypeSharedData.proto": {
+      "sha256_16": "17ff6183cc7afddd",
+      "size": 748,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "VoiceSettingsSnapshot",
+        "WeTypeSharedData"
+      ]
+    },
+    "WtAbTest.proto": {
+      "sha256_16": "c7390aa416245901",
+      "size": 747,
+      "source": "wetype_server.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "AbExptQueryReq",
+        "AbExptQueryRsp"
+      ]
+    },
+    "WtAbTestCommon.proto": {
+      "sha256_16": "0e187842b842366b",
+      "size": 1656,
+      "source": "wetype_server.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "ABTestStatus",
+        "ABTestHitedInfo",
+        "ABTestHitDetailInfo",
+        "ABTestUserUsageStatus",
+        "ABTestClientVersion",
+        "ABTestDeviceInfo"
+      ]
+    },
+    "WtAiQuestionAction.proto": {
+      "sha256_16": "948f43159ea9b59c",
+      "size": 1299,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtAiQuestionSource.proto": {
+      "sha256_16": "afdcd96e2b501386",
+      "size": 316,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtAndroidMemeryAbout.proto": {
+      "sha256_16": "140082ca418cee0c",
+      "size": 488,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtAndroidMemeryAbout"
+      ]
+    },
+    "WtAppPcInstallSource.proto": {
+      "sha256_16": "f84d55f600e9f08e",
+      "size": 1160,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtAskAI.proto": {
+      "sha256_16": "1b90336121ae40b8",
+      "size": 1087,
+      "source": "wetype_update.exe",
+      "package": "wetype.pb.askai",
+      "messages": [
+        "BaseReq",
+        "HeaderItem",
+        "Header",
+        "BaseRsp",
+        "CmdReq",
+        "CmdResp",
+        "CmdStartPageReq",
+        "CmdStartPageResp",
+        "CmdMultiTurnReq",
+        "CmdMultiTurnResp"
+      ]
+    },
+    "WtClipboardAction.proto": {
+      "sha256_16": "8bbd53ab807977c8",
+      "size": 1350,
+      "source": "wetype_server.exe|wetype_renderer.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtClipboardScene.proto": {
+      "sha256_16": "1bb18cd1b477b46f",
+      "size": 637,
+      "source": "wetype_server.exe|wetype_renderer.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtDictUpdateStatusReport.proto": {
+      "sha256_16": "c7a4ef16aa8bf9f3",
+      "size": 598,
+      "source": "wetype_server.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtDictUpdateStatusReport"
+      ]
+    },
+    "WtExceptionEventReport.proto": {
+      "sha256_16": "57f65020089e76df",
+      "size": 467,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe|wetype_installer.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtExceptionEventReport"
+      ]
+    },
+    "WtExceptionSubtype.proto": {
+      "sha256_16": "16f3238ca9810080",
+      "size": 210,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe|wetype_installer.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtExceptionType.proto": {
+      "sha256_16": "f7653526de2db83a",
+      "size": 1729,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe|wetype_installer.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtKeyboardLandscapePortraitMode.proto": {
+      "sha256_16": "bf648e7a0efb2c22",
+      "size": 185,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtKeyboardShowMode.proto": {
+      "sha256_16": "919b0e045a288c69",
+      "size": 239,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtKeyboardType.proto": {
+      "sha256_16": "7f8e8d0e683ad698",
+      "size": 395,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtPcPatch.proto": {
+      "sha256_16": "b850e1d08f0db20e",
+      "size": 543,
+      "source": "wetype_update.exe|wetype_service.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtPcPatch"
+      ]
+    },
+    "WtPcPatchErrorType.proto": {
+      "sha256_16": "bb633148f142643b",
+      "size": 1169,
+      "source": "wetype_update.exe|wetype_service.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtPerformanceProcess.proto": {
+      "sha256_16": "ca3324812a2fb42f",
+      "size": 289,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtPerformanceProcess"
+      ]
+    },
+    "WtPerformanceProcessType.proto": {
+      "sha256_16": "8372c28e2f2e2636",
+      "size": 189,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatAiQuestionActionReport.proto": {
+      "sha256_16": "4be461e3df736b0b",
+      "size": 907,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatAiQuestionActionReport"
+      ]
+    },
+    "WtStatAiQuestionUserActionReport.proto": {
+      "sha256_16": "846dedc69c6f2a41",
+      "size": 929,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatAiQuestionUserActionReport"
+      ]
+    },
+    "WtStatAppPcInstall.proto": {
+      "sha256_16": "fcb26922a1296aa9",
+      "size": 427,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatAppPcInstall"
+      ]
+    },
+    "WtStatCandidateClickReport.proto": {
+      "sha256_16": "98239ae670485a8a",
+      "size": 1348,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatCandidateClickReport"
+      ]
+    },
+    "WtStatCandidateScene.proto": {
+      "sha256_16": "ee882f899c58afb7",
+      "size": 276,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatCandidateUserClickReport.proto": {
+      "sha256_16": "c0c6ca34f978e195",
+      "size": 1005,
+      "source": "wetype_server.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatCandidateUserClickReport"
+      ]
+    },
+    "WtStatClipboardActionReport.proto": {
+      "sha256_16": "9b0d520ee1985e25",
+      "size": 413,
+      "source": "wetype_server.exe|wetype_renderer.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatClipboardActionReport"
+      ]
+    },
+    "WtStatCloudCandidateActionReport.proto": {
+      "sha256_16": "6f4aff1b1243a9c9",
+      "size": 527,
+      "source": "wetype_server.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatCloudCandidateActionReport"
+      ]
+    },
+    "WtStatCommonTermsAction.proto": {
+      "sha256_16": "943e3809cc9bbccf",
+      "size": 928,
+      "source": "wetype_server.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatCommonTermsUserActionReport.proto": {
+      "sha256_16": "45285d3c36279afa",
+      "size": 511,
+      "source": "wetype_server.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatCommonTermsUserActionReport"
+      ]
+    },
+    "WtStatGroupClipboardUserActionReport.proto": {
+      "sha256_16": "563228b4fd046545",
+      "size": 475,
+      "source": "wetype_server.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatGroupClipboardUserActionReport"
+      ]
+    },
+    "WtStatKeyboardActiveAction.proto": {
+      "sha256_16": "22c8b71efb4b4c63",
+      "size": 246,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatKeyboardActiveActionSecond.proto": {
+      "sha256_16": "9a8cf0c8f8efcba0",
+      "size": 279,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatKeyboardActiveReport.proto": {
+      "sha256_16": "c84e8013399cc2f5",
+      "size": 1340,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatKeyboardActiveReport"
+      ]
+    },
+    "WtStatKeyboardLostReport.proto": {
+      "sha256_16": "4e449a8b7f069d66",
+      "size": 279,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatKeyboardLostReport"
+      ]
+    },
+    "WtStatPcAppButtonStatusReport.proto": {
+      "sha256_16": "3cd4f85df4883996",
+      "size": 1760,
+      "source": "wetype_server.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatPcAppButtonStatusReport"
+      ]
+    },
+    "WtStatPcAppCommonAction.proto": {
+      "sha256_16": "1e37b061db66b167",
+      "size": 12700,
+      "source": "wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatPcAppCommonActionReport.proto": {
+      "sha256_16": "1343f6bae3df7f5e",
+      "size": 796,
+      "source": "wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatPcAppCommonActionReport"
+      ]
+    },
+    "WtStatPcAppCommonScene.proto": {
+      "sha256_16": "899c91b1d067c959",
+      "size": 3528,
+      "source": "wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatRecordingSummaryAction.proto": {
+      "sha256_16": "7ab16839790ae21a",
+      "size": 1551,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatRecordingSummaryActionReport.proto": {
+      "sha256_16": "3b5091e9f2eb8e4b",
+      "size": 1352,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatRecordingSummaryActionReport"
+      ]
+    },
+    "WtStatRecordingSummaryContentActionReport.proto": {
+      "sha256_16": "ef98336e2b423e46",
+      "size": 1046,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatRecordingSummaryContentActionReport"
+      ]
+    },
+    "WtStatRecordingSummaryScene.proto": {
+      "sha256_16": "b9ea70a3a6867f4c",
+      "size": 419,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatRefetchContextReport.proto": {
+      "sha256_16": "84f560ceb6431bb6",
+      "size": 1139,
+      "source": "wetype_server.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatRefetchContextReport"
+      ]
+    },
+    "WtStatVmodeUserActionReport.proto": {
+      "sha256_16": "3ad008bb2149b53e",
+      "size": 610,
+      "source": "wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatVmodeUserActionReport"
+      ]
+    },
+    "WtStatVoiceInputAction.proto": {
+      "sha256_16": "f68ee212416159e8",
+      "size": 2089,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatVoiceInputActionReport.proto": {
+      "sha256_16": "e29d3f4bae7d762b",
+      "size": 2674,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatVoiceInputActionReport"
+      ]
+    },
+    "WtStatVoiceInputContentActionReport.proto": {
+      "sha256_16": "d041fbea5e6e9a40",
+      "size": 2871,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatVoiceInputContentActionReport"
+      ]
+    },
+    "WtStatVoiceInputLanguageSetting.proto": {
+      "sha256_16": "7111e7fa62e5f486",
+      "size": 871,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatVoiceInputPunctuationSetting.proto": {
+      "sha256_16": "7550b3fd7ae8b121",
+      "size": 569,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatVoiceInputScene.proto": {
+      "sha256_16": "4546e534aaca6597",
+      "size": 605,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtStatVoiceStartupTimingReport.proto": {
+      "sha256_16": "389082cedc00c677",
+      "size": 461,
+      "source": "wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtStatVoiceStartupTimingReport"
+      ]
+    },
+    "WtVmodeAction.proto": {
+      "sha256_16": "04cf37f993c020d2",
+      "size": 688,
+      "source": "wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtVmodeScene.proto": {
+      "sha256_16": "a3ebb8e246a25ccd",
+      "size": 225,
+      "source": "wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtVmodeSource.proto": {
+      "sha256_16": "f51dba2cb10c5ad3",
+      "size": 316,
+      "source": "wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": []
+    },
+    "WtWinCostReport.proto": {
+      "sha256_16": "5f97797549341a94",
+      "size": 797,
+      "source": "wetype_renderer.exe|wetype_update.exe",
+      "package": "com.tencent.wrbus.pb",
+      "messages": [
+        "WtWinCostReport"
+      ]
+    },
+    "commands.proto": {
+      "sha256_16": "3799b12f7147b383",
+      "size": 32558,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "wetype.commands",
+      "messages": [
+        "UpdateWindowStatus",
+        "RendererWindowStatus",
+        "KeyEvent",
+        "CandidateWordSyllable",
+        "AiSearchResult",
+        "TranslateResult",
+        "CandidateWord",
+        "CandidateList",
+        "Point",
+        "PendingWord",
+        "PendingList",
+        "ApplicationInfo",
+        "FuzzyPYInfo",
+        "KeyboardTypeInfo",
+        "DictItem",
+        "Input",
+        "CrashInfo",
+        "Output",
+        "Command",
+        "CommandBase",
+        "RespBase",
+        "HotWord",
+        "HotWordList",
+        "InputStatus",
+        "ClipBoardItem",
+        "ClipBoardGuideConfig",
+        "ClipBoardList",
+        "PunctuationList",
+        "CloudSearchCandidate",
+        "CloudSearchResult",
+        "ReportInfo",
+        "ReportBase",
+        "FixedUserInfo",
+        "FixedCandidateExtraInfo",
+        "TipDebugLogEntry",
+        "TipDebugLogBatch",
+        "CommandV1",
+        "GlobalTypeConfig",
+        "SessionTypeConfig",
+        "FileTransferEvent",
+        "RespBodyV1"
+      ]
+    },
+    "ipc.proto": {
+      "sha256_16": "5480ce8a6a68ed90",
+      "size": 160,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "wetype.ipc",
+      "messages": [
+        "IPCPathInfo"
+      ]
+    },
+    "multi_platform_sync.proto": {
+      "sha256_16": "5afd6e817484f350",
+      "size": 5318,
+      "source": "wetype_server.exe|wetype_update.exe",
+      "package": "wetype.multiplatform",
+      "messages": [
+        "DeviceInfo",
+        "GetMatchCodeReq",
+        "GetMatchCodeRsp",
+        "BindMatchCodeReq",
+        "BindMatchCodeRsp",
+        "RealBindMatchCodeReq",
+        "RealBindMatchCodeRsp",
+        "FetchBindStatusReq",
+        "FetchBindStatusRsp",
+        "ReleaseMatchCodeOrBindReq",
+        "ReleaseMatchCodeOrBindRsp",
+        "BoundInfo",
+        "GroupInfo",
+        "GetGroupInfoReq",
+        "GetGroupInfoRsp",
+        "UpdateDeviceInfoReq",
+        "UpdateDeviceInfoRsp",
+        "UnbindReq",
+        "UnbindRsp",
+        "SetGroupFuncSwitchReq",
+        "SetGroupFuncSwitchRsp",
+        "ClipboardMsg",
+        "SendClipboardMsgReq",
+        "SendClipboardMsgRsp",
+        "UserHotWords",
+        "SendUserHotWordsReq",
+        "SendUserHotWordsRsp",
+        "PushInfo",
+        "PushBindReconfirm",
+        "PushBindCancel",
+        "PushUnBind",
+        "PushBindSuccess",
+        "PushClipboardMsg",
+        "PushUserHotWords",
+        "PushGroupFuncSwitch",
+        "PushOnBoundListChange",
+        "GetMatchCodeStatusReq",
+        "GetMatchCodeStatusRsp",
+        "PushVoiceRecordTask"
+      ]
+    },
+    "update.proto": {
+      "sha256_16": "1bb4ad2a497dc3f5",
+      "size": 7497,
+      "source": "wetype_server.exe|wetype_renderer.exe|wetype_update.exe",
+      "package": "wetype.update",
+      "messages": [
+        "GetKbFeaturePair",
+        "GetKBFeaturesReq",
+        "GetKBFeaturesRsp",
+        "ShowMenuWndReq",
+        "ShowSettingWndReq",
+        "DictTypeFilter",
+        "ClientDictInfo",
+        "ABTestStatus",
+        "ABTestHitedInfo",
+        "ABTestHitDetailInfo",
+        "UserUsageStatus",
+        "ABTestClientVersion",
+        "DeviceInfo",
+        "GetImeDictListConfigReq",
+        "GetImeDictListConfigResp",
+        "GetImeNewHotDictConfigReq",
+        "GetImeNewHotDictConfigResp",
+        "ImeDictDownloadItem",
+        "ImeDictCondition",
+        "ImeDictItem",
+        "ApplicableVersion",
+        "Command",
+        "GetKBCommandsReq",
+        "GetKBCommandsRsp",
+        "UpdateKBCommandsReq",
+        "UpdateKBCommandsRsp",
+        "ApplyCosTokenReq",
+        "ApplyCosTokenRsp",
+        "ApplyCosTokenReqV2",
+        "ApplyCosTokenRspV2",
+        "GetKBChatStatusRsp",
+        "BusLogSampleInfoReq",
+        "BusLogSampleInfoGroup",
+        "BusLogSampleInfoItem",
+        "BusLogSampleInfoRsp"
+      ]
+    },
+    "wetype_file_transfer.proto": {
+      "sha256_16": "ef70fdf82e132a85",
+      "size": 2751,
+      "source": "wetype_update.exe",
+      "package": "wetype.server",
+      "messages": [
+        "P2PPeerInfo",
+        "NetEndpoint",
+        "AvailableNets",
+        "GrpcNetInfo",
+        "FileTransferFeature",
+        "GenP2PTransferCodeReq",
+        "GenP2PTransferCodeRsp",
+        "JoinP2PTransferReq",
+        "JoinP2PTransferRsp",
+        "GetP2PTransferPeerReq",
+        "GetP2PTransferPeerRsp",
+        "InitP2PTransferReq",
+        "InitP2PTransferRsp",
+        "UserTransferStatInfo",
+        "HandleTransferCompletedReq",
+        "HandleTransferCompletedRsp",
+        "P2PDeviceInfo",
+        "P2PLinkedDevice",
+        "GetLinkedDeviceListRsp",
+        "PushP2PTransferInvite",
+        "FlurryMessage",
+        "FlurryMsgDisconnect"
+      ]
+    },
+    "wetype_wechat.proto": {
+      "sha256_16": "ec828741f70cf6f4",
+      "size": 2036,
+      "source": "wetype_server.exe",
+      "package": "wetype.server",
+      "messages": [
+        "GetWxTokenReq",
+        "GetWxTokenRsp",
+        "WeTypeCommunication",
+        "WTGetWechatUidRequest",
+        "WTGetWechatUidResponse",
+        "WTVerifyTokenRequest",
+        "WTVerifyTokenResponse",
+        "WTSayHelloRequest",
+        "WTSayHelloResponse",
+        "WTSupportEmojiRequest",
+        "WTSupportEmojiResponse",
+        "WTEmitEmojiRequest",
+        "WTEmitEmojiResponse",
+        "WTEmitSmallEmojiRequest",
+        "WTEmitSmallEmojiResponse",
+        "WTRefreshStateRequest",
+        "WTRefreshStateResponse",
+        "WTCursorContextRequest",
+        "WTCursorContextResponse"
+      ]
+    }
+  }
+}

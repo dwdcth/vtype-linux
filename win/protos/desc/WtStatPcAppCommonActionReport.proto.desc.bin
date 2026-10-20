@@ -1,0 +1,25 @@
+
+#WtStatPcAppCommonActionReport.protocom.tencent.wrbus.pbBaseMsg.protoWtStatPcAppCommonAction.protoWtVmodeSource.protoWtStatPcAppCommonScene.proto"õ
+WtStatPcAppCommonActionReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg;
+scene (2,.com.tencent.wrbus.pb.WtStatPcAppCommonScene=
+action (2-.com.tencent.wrbus.pb.WtStatPcAppCommonAction
+action_context (	
+device_type (	
+plus_status (
+	bundle_id (	
+window_status (
+action_context_extra	 (	!
+autoupdate_failed_version
+ (	
+enter_source (3
+source (2#.com.tencent.wrbus.pb.WtVmodeSource
+content_type (
+
+paste_time (
+index (
+symbol_type (
+symbol_panel_duration (
+symbol_index (	
+symbol_sub_type (	
+symbol_name (	bproto3

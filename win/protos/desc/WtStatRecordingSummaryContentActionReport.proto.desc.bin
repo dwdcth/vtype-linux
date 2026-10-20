@@ -1,0 +1,34 @@
+
+/WtStatRecordingSummaryContentActionReport.protocom.tencent.wrbus.pbBaseMsg.proto!WtStatRecordingSummaryScene.protoWtKeyboardType.proto"WtStatRecordingSummaryAction.proto"Ø
+)WtStatRecordingSummaryContentActionReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType
+engine_version (	B
+action (22.com.tencent.wrbus.pb.WtStatRecordingSummaryAction@
+scene (21.com.tencent.wrbus.pb.WtStatRecordingSummaryScene
+voice_id (	
+html_version (
+summary_stage (	
+summary_status	 (	
+origin_source
+ (	
+enter_source (	
+	bundle_id (	
+index (
+is_history_summary (
+asr_word_cnts (
+html_word_cnts (
+active_duration_ms (
+final_html_duration_ms ("
+recording_left_duration_ms (
+	is_scroll (
+	max_depth (
+is_read_complete (
+share_channel (	
+result (	
+html_url (	
+share_token (	
+
+html_title (	
+action_context (	
+end_duration (bproto3

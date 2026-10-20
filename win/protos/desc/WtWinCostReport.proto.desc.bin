@@ -1,0 +1,34 @@
+
+WtWinCostReport.protocom.tencent.wrbus.pbBaseMsg.protoWtKeyboardType.proto"À
+WtWinCostReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+device_type (	
+version (
+
+process_id (
+process_name (	
+key_type (
+
+first_show (
+
+session_id (
+input_interval	 (
+press_process_cost
+ (
+candidate_prepare_cost (
+candidate_trans_cost (
+load_more_send_cost (
+more_prepare_cost (
+more_trans_cost (
+more_process_cost (
+ui_trans_cost (
+ui_render_cost (
+
+total_cost (
+pending_len (;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType
+session_lifetime (
+sys_cpu_usage (
+sys_mem_usage (
+sys_available_mem (
+sys_disk_active_time (bproto3

@@ -1,0 +1,58 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtKeyboardType.proto";
+
+message WtStatPcAppButtonStatusReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  int64 plus_button = 2;
+  int64 symbol_auto_switch_button = 3;
+  int64 symbol_auto_match_button = 4;
+  int64 chinese_serial_comma_button = 5;
+  int64 vague_input_button = 6;
+  int64 status_window_button = 7;
+  int64 add_space_button = 8;
+  int64 chinese_english_space = 9;
+  int64 chinese_number_space = 10;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 11;
+  string shuangpin_keyboard_type_detail = 12;
+  string wubi_keyboard_type_detail = 13;
+  string wubi_keyboard_type_reference = 14;
+  string fontsize = 15;
+  string appearance_mode = 16;
+  int64 chinese_switch_english_button = 17;
+  int64 switch_chinese_english_shift = 18;
+  int64 switch_chinese_english_ctrl = 19;
+  int64 switch_chinese_english_ctrlspace = 20;
+  int64 switch_traditional_simplified = 21;
+  int64 switch_full_half_button = 22;
+  int64 english_symbol_button = 23;
+  int64 minus_to_flip_button = 24;
+  int64 brackets_to_flip_button = 25;
+  int64 comma_to_flip_button = 26;
+  int64 tab_to_flip_button = 27;
+  int64 semicolon_to_choose_button = 28;
+  int64 command_to_choose = 29;
+  int64 auto_sequence = 30;
+  string default_lanuage = 31;
+  int64 always_english_punction = 32;
+  int64 keep_lanuage_type = 33;
+  int64 clipboard_button = 34;
+  int64 autoupdate_button = 35;
+  int64 small_emoji_recommend_button = 36;
+  int64 kaomoji_recommend_button = 37;
+  int64 emoji_recommend_button = 38;
+  int64 ai_question_button = 39;
+  string vague_input_detail_button = 40;
+  int64 v_mode_button = 41;
+  int64 auto_refinement_button = 42;
+  int64 voice_hold_button = 43;
+  int64 voice_hands_free_button = 44;
+  string voice_hold_shortcut = 45;
+  string voice_hands_free_shortcut = 46;
+  string voice_punc_setting = 47;
+  int64 toolbar_voice_button = 48;
+  int64 recording_summary_button = 49;
+  int64 toolbar_recording_summary_button = 50;
+}

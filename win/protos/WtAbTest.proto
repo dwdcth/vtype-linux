@@ -1,0 +1,19 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "WtAbTestCommon.proto";
+
+message AbExptQueryReq {
+  uint32 version = 1;
+  string vid = 2;
+  com.tencent.wrbus.pb.ABTestOsType os_type = 3;
+  com.tencent.wrbus.pb.ABTestDeviceInfo device_info = 4;
+  com.tencent.wrbus.pb.ABTestUserUsageStatus user_usage_status = 5;
+  com.tencent.wrbus.pb.ABTestClientVersion client_version = 6;
+  com.tencent.wrbus.pb.ABTestKeyboardType keyboard_type = 7;
+}
+
+message AbExptQueryRsp {
+  com.tencent.wrbus.pb.ABTestStatus status = 1;
+  com.tencent.wrbus.pb.ABTestHitDetailInfo expt_infos = 2;
+}

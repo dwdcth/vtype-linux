@@ -1,0 +1,19 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+
+message WtStatVoiceStartupTimingReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string request_id = 2;
+  int64 source = 3;
+  string bundle_id = 4;
+  string capture_mode = 5;
+  string startup_path = 6;
+  string startup_result = 7;
+  int64 trigger_to_ui_ms = 8;
+  int64 trigger_to_first_audio_ms = 9;
+  int64 device_to_first_audio_ms = 10;
+  int64 trigger_to_first_vad_speech_ms = 11;
+  int64 trigger_to_first_result_ms = 12;
+}

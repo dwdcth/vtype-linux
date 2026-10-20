@@ -1,0 +1,27 @@
+
+WtDictUpdateStatusReport.protocom.tencent.wrbus.pbBaseMsg.proto"†
+WtDictUpdateStatusReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+engine_version (	
+
+dict_infos (	
+	api_level (
+	dict_name (	
+version (
+type_id (
+	dict_type (
+dict_mdfive	 (	
+experiment_group_id
+ (
+cdn_url (	
+
+cdn_mdfive (	
+decrypt_mdfive (	
+decrypt_algorithm (
+compression_algorithm (
+patch_version (
+patch_cdn_url (	
+patch_error_code (
+download_time (
+handle_time (
+update_status (	bproto3

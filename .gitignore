@@ -42,3 +42,21 @@ common-phrases.bin
 
 # 本地开发记录不属于公开发布内容；根目录 AGENTS.md 是公开的 agent 指南。
 /context.md
+
+# wine 路线：构建产物、zig 缓存、安装测试目录与实验输出
+/win/bin/
+/win/.zig-cache/
+/win/.test-install/
+/win/.probe_out.txt
+/win/.select_out.txt
+/win/.p2out.txt
+/win/.dbg2out.txt
+/win/.dbg2mod.txt
+/win/tools/.d0hits.txt
+/win/tools/.d.txt
+/win/tools/.factory2.txt
+/win/tools/.iq.txt
+# 根目录临时文件（REA 会话产物、草稿）
+/.d2.txt
+/.tmp-rea-*
+/win/.ref/

@@ -1,0 +1,9 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+
+enum WtKeyboardLandscapePortraitMode {
+  keyboad_mode_invalid = 0;
+  keyboad_mode_landscape = 1;
+  keyboad_mode_portrait = 2;
+}

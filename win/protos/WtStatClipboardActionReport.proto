@@ -1,0 +1,17 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtClipboardScene.proto";
+import "WtClipboardAction.proto";
+
+message WtStatClipboardActionReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  com.tencent.wrbus.pb.WtClipboardScene scene = 2;
+  com.tencent.wrbus.pb.WtClipboardAction action = 3;
+  string content = 4;
+  int64 index = 5;
+  int64 content_type = 6;
+  int64 clip_time = 7;
+  string app_name = 8;
+}

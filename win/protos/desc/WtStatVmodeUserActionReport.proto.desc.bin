@@ -1,0 +1,19 @@
+
+!WtStatVmodeUserActionReport.protocom.tencent.wrbus.pbBaseMsg.protoWtVmodeSource.protoWtVmodeScene.protoWtVmodeAction.proto"Ñ
+WtStatVmodeUserActionReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg1
+scene (2".com.tencent.wrbus.pb.WtVmodeScene3
+action (2#.com.tencent.wrbus.pb.WtVmodeAction3
+source (2#.com.tencent.wrbus.pb.WtVmodeSource
+panel_result (
+content_type (
+index (
+click_candidate_infos (	
+
+click_type	 (
+symbol_type
+ (
+symbol_sub_type (	
+symbol_panel_duration (
+symbol_index (	
+symbol_name (	bproto3

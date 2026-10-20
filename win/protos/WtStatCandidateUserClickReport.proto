@@ -1,0 +1,37 @@
+// 提取自微信输入法 Windows 版，勿手改；用 extract_all.py 重新生成
+syntax = "proto3";
+package com.tencent.wrbus.pb;
+import "BaseMsg.proto";
+import "WtKeyboardType.proto";
+import "WtStatCandidateScene.proto";
+
+message WtStatCandidateUserClickReport {
+  com.tencent.wrbus.pb.BaseMsg base_log = 1;
+  string request_id = 2;
+  int64 candidate_index = 3;
+  string candidate_source = 4;
+  com.tencent.wrbus.pb.WtKeyboardType keyboard_type = 5;
+  string app_name = 6;
+  string candidate_top_source = 7;
+  com.tencent.wrbus.pb.WtStatCandidateScene app_scene = 8;
+  int64 is_chat = 9;
+  int64 context_len = 10;
+  int64 candidate_type = 11;
+  string candidate_top_type = 12;
+  int64 candidate_flag = 13;
+  string candidate_top_flag = 14;
+  int64 candidate_word_length = 15;
+  int64 candidate_strokes_num = 16;
+  int64 candidate_click_source = 17;
+  int64 duration = 18;
+  int64 engine_duration = 19;
+  string word_frequency_tag = 20;
+  int64 candidate_input_scene = 21;
+  int64 candidate_input_sequence_length = 22;
+  int64 is_single_top_50 = 23;
+  string a_b_hits = 24;
+  int64 typing_num = 25;
+  string exposure_candidate_extra_infos = 26;
+  string click_candidate_extra_infos = 27;
+  int64 is_first_screen = 28;
+}

@@ -1,0 +1,20 @@
+
+&WtStatCloudCandidateActionReport.protocom.tencent.wrbus.pbBaseMsg.protoWtKeyboardType.proto"¡
+ WtStatCloudCandidateActionReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg
+engine_version (	
+
+dict_infos (	;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType
+action (	
+candidate_type (	
+candidate_length (
+candidate_index (
+duration	 (
+syllable_length
+ (
+
+request_id (	
+gap_duration (
+cloud_service_version (
+cloud_source (bproto3

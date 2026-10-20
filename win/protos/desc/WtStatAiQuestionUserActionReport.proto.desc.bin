@@ -1,0 +1,30 @@
+
+&WtStatAiQuestionUserActionReport.protocom.tencent.wrbus.pbBaseMsg.protoWtAiQuestionSource.protoWtKeyboardType.protoWtAiQuestionAction.protoWtStatCandidateScene.proto"ã
+ WtStatAiQuestionUserActionReport/
+base_log (2.com.tencent.wrbus.pb.BaseMsg;
+keyboard_type (2$.com.tencent.wrbus.pb.WtKeyboardType8
+action (2(.com.tencent.wrbus.pb.WtAiQuestionAction
+
+request_id (	
+send_id (	
+	bundle_id (	=
+	app_scene (2*.com.tencent.wrbus.pb.WtStatCandidateScene
+is_chat (
+panel_status	 (
+question_type
+ (
+content_type (
+page_stay_duration (
+panel_stay_duration (8
+source (2(.com.tencent.wrbus.pb.WtAiQuestionSource
+page_content_load (
+	item_name (	
+
+item_index (
+length (
+screen_status (
+answer_type (	
+action_source (	
+	sent_type (	
+bubble_type (	
+answer_load_duration (bproto3

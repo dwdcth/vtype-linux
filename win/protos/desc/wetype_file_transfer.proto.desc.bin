@@ -1,0 +1,140 @@
+
+wetype_file_transfer.protowetype.server"Ÿ
+P2PPeerInfo
+uin (
+
+public_cer (
+link_net_info (
+	public_ip (	
+ready (
+grpc_net_info (
+dispatch_buf (
+biz_uin (	)
+platform	 (2.wetype.server.Platform
+direct_info
+ (
+state (
+device_name (	
+capabilities ("B
+NetEndpoint
+
+ip (	
+port (
+ssid (	
+pwd (	"‹
+AvailableNets(
+awdl (2.wetype.server.NetEndpoint'
+lan (2.wetype.server.NetEndpoint'
+wfd (2.wetype.server.NetEndpoint"ê
+GrpcNetInfo
+
+ip (	
+port (
+ca_cert (	
+server_name (	
+device_name (	
+device_type (
+version (
+platform (4
+available_nets	 (2.wetype.server.AvailableNets
+preferred_client
+ ("d
+FileTransferFeature
+wxp2p_thread_mb (
+wxp2p_thread_second (
+open_status_bar ("m
+GenP2PTransferCodeReq
+
+public_cer (
+link_net_info (
+device_name (	
+capabilities ("“
+GenP2PTransferCodeRsp
+err_code (
+transfer_code (	
+	expire_at (
+
+expiration (
+transfer_url (	
+transfer_img (	"§
+JoinP2PTransferReq
+transfer_code (	
+
+public_cer (
+link_net_info (
+grpc_net_info (
+direct_info (
+state (
+capabilities ("­
+JoinP2PTransferRsp
+err_code (-
+	peer_info (2.wetype.server.P2PPeerInfo
+	expire_at (
+
+expiration (
+dispatch_buf (
+peer_dispatch_buf (".
+GetP2PTransferPeerReq
+transfer_code (	"°
+GetP2PTransferPeerRsp
+err_code (-
+	peer_info (2.wetype.server.P2PPeerInfo
+	expire_at (
+
+expiration (
+dispatch_buf (
+peer_dispatch_buf ("Q
+InitP2PTransferReq
+peer_uin (
+
+public_cer (
+link_net_info ("d
+InitP2PTransferRsp
+err_code (
+transfer_code (	
+	expire_at (
+
+expiration ("@
+UserTransferStatInfo
+user_id (
+trans_stat_info ("c
+HandleTransferCompletedReq2
+users (2#.wetype.server.UserTransferStatInfo
+	timestamp (".
+HandleTransferCompletedRsp
+err_code ("y
+P2PDeviceInfo
+name (	
+platform (
+	bind_time (
+client_version (	
+support_file_transfer ("Q
+P2PLinkedDevice
+uin (1
+device_info (2.wetype.server.P2PDeviceInfo"j
+GetLinkedDeviceListRsp
+err_code (
+group_id (,
+list (2.wetype.server.P2PLinkedDevice"|
+PushP2PTransferInvite
+transfer_code (	
+device_name (	
+
+sender_uin (
+	send_time (
+platform ("6
+FlurryMessage
+
+id (
+cmd (
+data ("%
+FlurryMsgDisconnect
+reason (*b
+Platform
+Android
+IOS
+MiniProgram
+H5
+Mac
+Windows
+HarmonyMobile
