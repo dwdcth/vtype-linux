@@ -86,6 +86,30 @@ static long long __fastcall wx_listener(void *a, void *b, void *c, void *d,
     InterlockedIncrement(&g_enum_events);
 
     if (s_get_candidates) {
+        /* ★iterator 预校验（反汇编 wxime_get_candidates 的解引用链）：
+         * iter=[b+0x90] → q1=*(iter+8)；q1 非空时 q2=*(q1+0x20)、*(q2)。
+         * 实测门条件（自引用+payload）不足以排除坏 iterator——重置会话的
+         * 事件会带毒 iterator，枚举在 mov rdx,[rdx]（+0xC1）崩，VEH 吞掉
+         * 后引擎分发线程残废（demo 时代每轮 11 次"非致命崩"同此址）。
+         * 逐级验可读，坏链直接跳过枚举。 */
+        unsigned char *iter = ev + WXIME_ITER_OFF;
+        unsigned long long q1 = *(unsigned long long *)(iter + 8);
+        int iter_ok = 1;
+        if (q1) {
+            if (q1 < 0x10000 || q1 > 0x7fffffffffffULL || IsBadReadPtr((void *)q1, 0x28))
+                iter_ok = 0;
+            else {
+                unsigned long long q2 = *(unsigned long long *)((unsigned char *)q1 + 0x20);
+                if (q2 && (q2 < 0x10000 || q2 > 0x7fffffffffffULL || IsBadReadPtr((void *)q2, 8)))
+                    iter_ok = 0;
+            }
+        }
+        if (!iter_ok) {
+            fprintf(stderr, "[wxhost] listener: 候选事件但 iterator 毒链，跳过枚举\n");
+            fflush(stderr);
+            InterlockedDecrement(&g_listener_busy);
+            return 0;
+        }
         InterlockedExchange(&g_snap_count, 0);
         InterlockedExchange(&g_snap_total, 0);
         /* 同步枚举（get_candidates 内部 for 循环），iterator 在事件 b+0x90 */
