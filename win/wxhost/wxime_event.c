@@ -38,6 +38,14 @@ static volatile LONG g_seq_ready;
 static volatile LONG g_sequel_pending;
 static char g_sequel_anchor[32];       /* 本轮 sequel 的上文词（锚） */
 
+/* 清全部待取快照（S 全量重放前用：残留组词表会被误当重放结果） */
+void wxime_event_clear_all(void)
+{
+    InterlockedExchange(&g_snap_ready, 0);
+    InterlockedExchange(&g_comp_ready, 0);
+    InterlockedExchange(&g_seq_ready, 0);
+}
+
 void wxime_event_expect_sequel(const char *anchor)
 {
     snprintf(g_sequel_anchor, sizeof g_sequel_anchor, "%s", anchor ? anchor : "");

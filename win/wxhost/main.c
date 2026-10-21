@@ -37,18 +37,30 @@ static void locate_addr(unsigned long long addr, char *out, int cap)
     }
 }
 
-/* VEH 崩溃捕获（clang PE 无 SEH __try）。日志走 stderr（serve 下 stdout
- * 是协议通道）；定位 rip 所属模块并栈回溯定位调用链（学习路径曾把词串
- * 字节当指针传 kernel32，fault 地址即数据内容）。 */
+/* VEH 崩溃捕获（clang PE 无 SEH __try）。
+ * ★get_candidates 哨兵竞态指令级恢复：+0xC1 处 mov rdx,[rdx] 解引用
+ * q2==-1（任务线程并发写，预校验 TOCTOU 关不死，fcitx5 高频打字实测
+ * 命中）——把 Rip 改跳该函数的 xor al,al 安全出口（+0x2e9f 处 epilogue
+ * 用 lea r11,[rsp+0x418] 自恢复，+0xC1 时 rsp 恰为帧基，栈平衡成立），
+ * 模拟"本事件无候选"，分发线程存活。 */
 static LONG WINAPI crash_veh(PEXCEPTION_POINTERS ep)
 {
     if (ep->ExceptionRecord->ExceptionCode != 0xC0000005) return EXCEPTION_CONTINUE_SEARCH;
     unsigned long long rip = (unsigned long long)ep->ContextRecord->Rip;
+    unsigned long long fault =
+        (unsigned long long)ep->ExceptionRecord->ExceptionInformation[1];
+    HMODULE lib = GetModuleHandleA("libwxhld.dll");
+    unsigned long long base = lib ? (unsigned long long)lib : 0;
+    if (base && fault == (unsigned long long)-1 &&
+        rip >= base + 0x1e2d30 && rip < base + 0x1e2ee0) {
+        ep->ContextRecord->Rip = base + 0x1e2e9f;   /* 安全出口 */
+        ep->ContextRecord->Rax = 0;
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
     char where[80];
     locate_addr(rip, where, sizeof where);
     fprintf(stderr, "[wxhost] !! AV rip=%llx (%s) fault=%llx\n",
-            rip, where,
-            (unsigned long long)ep->ExceptionRecord->ExceptionInformation[1]);
+            rip, where, fault);
     void *retaddrs[24];
     WORD ndepth = CaptureStackBackTrace(0, 24, retaddrs, NULL);
     for (WORD d = 0; d < ndepth; d++) {
@@ -68,7 +80,7 @@ int main(int argc, char **argv)
      *   --demo [目录] / <目录>   → 演示（nihao→选词→活性验证，兼容旧调用） */
     const char *a1 = argc > 1 ? argv[1] : NULL;
     int serve = 1;
-    const char *engine_dir = ".";
+    const char *engine_dir = NULL;   /* NULL=自定位：exe 所在目录 */
     if (a1 && !strcmp(a1, "--demo")) {
         serve = 0;
         if (argc > 2) engine_dir = argv[2];
@@ -78,11 +90,38 @@ int main(int argc, char **argv)
     } else if (argc > 2) {
         engine_dir = argv[2];
     }
+    /* 无参 serve（fcitx5 调用方式）：引擎目录 = 本 exe 所在目录——
+     * fcitx5 spawn 不传参数也不保证 cwd，缺省 "." 会落到调用方 cwd
+     * （实测词典路径错、config_dict false、create_session 抛异常）。 */
+    char selfdir[MAX_PATH];
+    if (!engine_dir) {
+        GetModuleFileNameA(NULL, selfdir, sizeof selfdir);
+        char *slash = strrchr(selfdir, '\\');
+        if (slash) *slash = 0;
+        engine_dir = selfdir;
+    }
     /* cwd 钉到引擎目录：引擎的用户词典（Tencent\WeType\ImeDir、1/）走
      * 相对路径——不钉的话学习数据散落在调用方 cwd（fcitx5/rime 前端
      * cwd 各异 → 学习分裂）。 */
     SetCurrentDirectoryA(engine_dir);
     AddVectoredExceptionHandler(1, crash_veh);
+
+    /* 单实例锁：fcitx5 重启拉新 wxhost 时旧实例可能还活着（wine 进程
+     * 退出滞后），两实例抢用户词典 LOCK → initialize 抛 C++ 异常
+     * （0xe06d7363，实测崩溃源）。等待旧实例退出（最长 15s）。 */
+    HANDLE single = CreateMutexA(NULL, TRUE, "Global\\wxhost_wetype_ime");
+    if (single && GetLastError() == ERROR_ALREADY_EXISTS) {
+        fprintf(stderr, "[wxhost] 已有实例在跑，等它退出...\n");
+        for (int i = 0; i < 30; i++) {
+            Sleep(500);
+            HANDLE h = OpenMutexA(SYNCHRONIZE, FALSE, "Global\\wxhost_wetype_ime");
+            if (!h) break;   /* 旧实例已退出（互斥体销毁） */
+            DWORD w = WaitForSingleObject(h, 0);
+            CloseHandle(h);
+            if (w == WAIT_OBJECT_0 || w == WAIT_ABANDONED) break;
+        }
+        fprintf(stderr, "[wxhost] 旧实例已让位\n");
+    }
 
     /* serve 模式 stdout 是协议通道：日志切 stderr 必须在 wxime_open
      * 之前（open 期日志量大，fcitx5 插件按行精确匹配 READY 会被淹） */

@@ -33,6 +33,9 @@ int wxime_poll_candidates(wxime_candidate *out, int max);
  * 走 CandidateUpdatedEvent 但不满足自引用门——见 wxime_event.c） */
 void wxime_event_expect_sequel(const char *anchor);
 
+/* 清全部待取快照（残留旧表防误读） */
+void wxime_event_clear_all(void);
+
 /* 取走联想词表快照（sequel 结果，无选词凭证，展示/本地拼词用） */
 int wxime_poll_sequel(wxime_candidate *out, int max);
 
