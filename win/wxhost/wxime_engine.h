@@ -54,6 +54,9 @@ int wxime_set_hot_word(wxime_engine *eng, const char *s2, int s2len,
 /* 联想：设上文文本 + 开 14 号开关 + get_most_likely_sequel，结果经事件管线 */
 int wxime_query_sequel(wxime_session *sess, const char *before);
 
+/* 强制引擎立即搜索当前组词（4+ 键引擎不主动推候选时用） */
+int wxime_search_now(wxime_session *sess);
+
 /* 记录一次用户选词历史（联想数据源；词 UTF-8 ≤24 字节） */
 int wxime_add_history(wxime_session *sess, const char *word);
 

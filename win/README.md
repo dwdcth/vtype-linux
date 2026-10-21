@@ -484,7 +484,39 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       fcitx5-wetype/e2e/dbus_wetype_test.py（/tmp/run_wine_e2e.sh）。
     - 新拓扑收益：fcitx5 → 插件 → wine wxhost（**单进程直调引擎**），
       砍掉 Route W 的管道翻译层与 wetype_server 双进程。
-23. **工具与资产**（win/ 内）：
+23. **★长句候选调查定案 + Route W 延迟优化（2026-10-21 下午）**：
+    - **症状**：Route C（wxhost 直调）打 `fccdjny`（风吹草低见牛羊，7 键
+      简拼）只出 fcc 的"范丞丞"表，第 4 键起候选不推进；原版客户端有
+      全句候选且排第一。
+    - **根因链（引擎日志 + 隔离实例逐键 trace 实证）**：引擎对每键都执行
+      `async_session_v2 SearchCandidates` 且 `ParseEvent CandidateUpdatedEvent,
+      malloc new_iterator` + `SigBatch size 3`——**事件一直在发**；但
+      wxhost 注册的 session listener 每批只收到 1 个事件，且从第 4 键起
+      收到的事件不带有效迭代器（q1=0 / {1,1} 残值）。带新迭代器的
+      CandidateUpdatedEvent 被 SigBatch 路由到了别处（server 是完整契约
+      的消费者——Route W 候选一直正常正因此）。ARM 侧对应物 =
+      SessionConfig `with_search_candidate_instantly_session_wrapper=1`
+      （harness/jinterop.c:1760），Windows 312B 快照中该位未定位。
+    - **已证伪的方向**（勿重走）：迭代器泄漏论（枚举后 delete 无效）；
+      惰性枚举论（listener 快速返回不解锁事件流）；活迭代器重枚举
+      （迭代器是创建时刻快照，重枚举得旧表——fccdjny 第 6 键枚举出 f 的
+      旧 839 词表）；wxime_search_candidates(session) 手动触发（第 3 键
+      成功、第 4 键起解引用 -1 崩——会话缺 search 包装器）；多路
+      listener（三路写同一快照竞态崩）；迭代器链门判替代自引用门
+      （nihao 流程枚举出 3 词垃圾表顶掉正确表，回退）。
+    - **待挖（下次）**：① IDA 开 .i64 逆向 create_session（RVA 1e0400）
+      的 SessionConfig 字段读取链，找 search_instantly 位翻之；②
+      c_callback_holder SigBatch（引擎日志行号 483）分发路由——带迭代器
+      的事件到底回调给谁。诊断设施已齐：逐事件 trace（ev/ctx/sr/py/q1/q2）、
+      WXHOST_DUMP_EV 深链 dump、WXHOST_SC_PATCH 配置补丁、
+      WXHOST_NO_LOCK 隔离实例（配合 /tmp 硬链接引擎目录+独立词典）。
+    - **部署回 Route W**（用户定夺：候选正确性优先）：win64/wxhost.exe
+      改名 .off（插件自动回退 wetype_win_host 两 exe）。
+    - **Route W 延迟优化**（wetype_win_host.c，移植 wxhost 验证过的方案）：
+      QUIET_MS 150→100；新增 NOEV_MS 600——server 不推新代数的键（补全
+      形）不再等满 2500ms，有旧快照沿用回发（候选窗不闪没），无则 EMPTY；
+      C 重连清 g_snap_n（跨会话 id 凭证作废）。沙箱实测每键 ~110ms。
+24. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
       解引用层捕获）、dbg6.c（调试 probe3 自身）。

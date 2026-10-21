@@ -29,6 +29,13 @@ void wxime_event_attach(void *session, wxime_get_candidates_fn get_candidates);
  * 返回候选数（0=自上次取走后无候选更新），拷贝进 out（至多 max 个）。 */
 int wxime_poll_candidates(wxime_candidate *out, int max);
 
+/* 活迭代器重枚举（主线程）：引擎 3+ 键不再推候选事件时，用 listener
+ * 存下的活迭代器重读当前候选。返回候选数，-1=无迭代器/并发忙。 */
+int wxime_event_refresh(void);
+
+/* 测试并清零组词事件脏标志：真=引擎状态变过（3+ 键无候选事件的信号） */
+int wxime_event_state_dirty(void);
+
 /* 标记即将发起 sequel：期间到达的非门事件按候选事件枚举（联想结果
  * 走 CandidateUpdatedEvent 但不满足自引用门——见 wxime_event.c） */
 void wxime_event_expect_sequel(const char *anchor);

@@ -35,7 +35,13 @@
 #define MAX_WORD   256
 #define MAX_ID     192     /* 候选 id blob 实测 ~100B，留余量 */
 #define POLL_MS    10
-#define QUIET_MS   150      /* 候选静默窗：停键后等引擎出最终候选 */
+#define QUIET_MS   100      /* 候选静默窗（原 150：有新代数后静默这么久即取
+                             * 最终表；wxhost 侧实测 100ms 足够合并连发代数，
+                             * 每键固定省 50ms 感知延迟） */
+#define NOEV_MS    600      /* 无新代数早退窗：server 对部分键（a/o 补全形）
+                             * 不推 candidateUpdate，等满总超时 2500ms 是卡顿
+                             * 元凶（wxhost 侧同症同方）。有旧快照则沿用回发
+                             * （候选不闪没），无则 EMPTY。 */
 #define WAIT_CAND  2500     /* B 命令候选总超时 */
 #define WAIT_EMIT  1200     /* 选词后等 emit 的超时 */
 
@@ -427,6 +433,7 @@ int main(int argc, char **argv)
              * 唯一可靠的重置 = 断开重连 + CREATE_SESSION（新连接 = 干净会话，
              * 与启动路径同一条被验证的路）。ensure_pipe 内部会自动重建会话。 */
             InterlockedExchange(&g_pipe_dead, 1);
+            g_snap_n = 0;   /* 新会话：旧快照 id 凭证作废，禁用沿用回发 */
             if (!ensure_pipe()) {
                 /* 重连失败也要按契约回 OK（插件期望 C 有应答）；
                  * 下条命令的 ensure_pipe 会再试。 */
@@ -473,10 +480,18 @@ int main(int argc, char **argv)
                 /* 新输入在排队 → 不再等静默窗，立刻回最新候选（治卡顿） */
                 if (have && stdin_pending()) done = 1;
                 if (have && GetTickCount64() - t_last >= (ULONGLONG)QUIET_MS) done = 1;
+                /* 无新代数早退：server 不推（补全键语义=候选不变）——有旧
+                 * 快照沿用回发（候选窗不闪没），避免等满 2500ms 卡顿 */
+                if (!have && GetTickCount64() - t0 >= (ULONGLONG)NOEV_MS) done = 1;
                 LeaveCriticalSection(&g_cs);
                 if (done) break;
             }
             if (have && g_snap_n > 0) {
+                printf("CAND");
+                for (int i = 0; i < g_snap_n; i++) printf("\t%s", g_snap[i]);
+                printf("\n");
+            } else if (g_snap_n > 0) {
+                fprintf(stderr, "[win-host] B 无新代数，沿用快照 %d 个\n", g_snap_n);
                 printf("CAND");
                 for (int i = 0; i < g_snap_n; i++) printf("\t%s", g_snap[i]);
                 printf("\n");

@@ -54,6 +54,31 @@ static int stdin_pending(void)
 
 /* 轮询直到出现新候选快照；返回候选数（0=窗口内无更新）。
  * have_new 代数语义：每次 poll 到非零结果即一次新代。 */
+/* 表-键流一致性校验：候选 TLV 的拼音串取每音节首字母，应与当前键流
+ * 一致（前 N 键）。防旧迭代器表顶掉新表（fccdjny 第 6 键枚举出 f 的旧
+ * 839 词表实测）。返回 1=匹配/无法判定（放行）。 */
+static int table_matches_keys(const wxime_candidate *c, int n, const char *keys)
+{
+    if (n <= 0 || !c[0].pinyin[0] || !keys || !*keys) return 1;
+    /* 拼音串形如 "fan cheng cheng" / "fan'cheng" —— 取每音节首字母 */
+    char inits[64]; int ni = 0;
+    const char *p = c[0].pinyin;
+    int at_syl_start = 1;
+    while (*p && ni < 63) {
+        if (*p == ' ' || *p == '\'' || *p == ',') { at_syl_start = 1; p++; continue; }
+        if (at_syl_start) { inits[ni++] = *p; at_syl_start = 0; }
+        p++;
+    }
+    inits[ni] = 0;
+    if (ni <= 0) return 1;
+    size_t kl = strlen(keys);
+    if ((size_t)ni > kl) {
+        /* 候选音节数多于键数（简拼补全形态）：校验键流是候选首字母串的
+         * 前缀 */
+        return strncmp(inits, keys, kl) == 0;
+    }
+    return strncmp(inits, keys, (size_t)ni) == 0;
+}
 static int wait_candidates(ULONGLONG wait_ms, int early_exit_on_pending)
 {
     /* 两类表分层：候选事件表（带选词凭证 tlv，可 S）优先；组词事件词表
@@ -63,6 +88,7 @@ static int wait_candidates(ULONGLONG wait_ms, int early_exit_on_pending)
     int cand_n = 0, have = 0;
     wxime_candidate comp_ans[MAX_CAND];
     int comp_n = 0;
+    int refreshed = 0;              /* 本轮已做过活迭代器刷新 */
     ULONGLONG t_last = 0;
     ULONGLONG t0 = GetTickCount64();
     while (GetTickCount64() - t0 < wait_ms) {
@@ -83,10 +109,39 @@ static int wait_candidates(ULONGLONG wait_ms, int early_exit_on_pending)
         if (have && early_exit_on_pending && stdin_pending()) break;
         if (have && GetTickCount64() - t_last >= QUIET_MS)
             break;   /* 组词表不再延长（m/a 补全键实测等满 2500ms 的元凶） */
+        /* ★活迭代器刷新（3+ 键引擎不发候选事件，只发组词事件=脏信号）：
+         * 静默无表 + 脏标志 → 用 listener 存的活迭代器重枚举当前候选。
+         * 与旧表比对：变了=新表采纳；没变=候选未变（沿用但凭证新鲜）。 */
+        if (!have && !refreshed && wxime_event_state_dirty()) {
+            Sleep(40);   /* 组词事件刚到，引擎状态落定 */
+            int rn = wxime_event_refresh();
+            refreshed = 1;
+            fprintf(stderr, "[wxhost] refresh 活迭代器 -> %d\n", rn);
+            if (rn > 0) {
+                wxime_candidate rc[MAX_CAND];
+                int n2 = wxime_poll_candidates(rc, MAX_CAND);
+                int same = (n2 > 0 && n2 == g_snap_n &&
+                            !strcmp(rc[0].word, g_snap[0].word));
+                if (n2 > 0 && !same) {
+                    cand_n = 0;
+                    for (int i = 0; i < n2 && i < MAX_CAND; i++)
+                        if (rc[i].word[0]) cand_ans[cand_n++] = rc[i];
+                    if (cand_n > 0) { have = 1; t_last = GetTickCount64(); }
+                }
+            }
+            if (have) break;
+        }
         /* 无新事件早退：静默 NOEV_MS 后引擎大概率不推（a/o 补全键语义
          * = 候选不变），沿用上次候选避免等满总超时（实测打字卡 2s+） */
         if (!have && GetTickCount64() - t0 >= NOEV_MS)
             break;
+    }
+    if (cand_n > 0) {
+        if (!table_matches_keys(cand_ans, cand_n, g_keys)) {
+            fprintf(stderr, "[wxhost] wait: 表与键流不符（首拼音=\"%s\" 键=\"%s\"）→ 丢弃旧表\n",
+                    cand_ans[0].pinyin, g_keys);
+            cand_n = 0;   /* 旧迭代器表：不采纳 */
+        }
     }
     if (cand_n > 0) {
         g_snap_n = cand_n;
@@ -100,6 +155,7 @@ static int wait_candidates(ULONGLONG wait_ms, int early_exit_on_pending)
     }
     return 0;
 }
+
 
 static void reply_cand(void)
 {
@@ -201,8 +257,6 @@ int wxhost_serve(wxime_engine *eng)
             }
             if (strlen(g_keys) + strlen(keys) < sizeof g_keys)
                 strcat(g_keys, keys);   /* 累计键流（S 重放用） */
-            if (strlen(g_keys) + strlen(keys) < sizeof g_keys)
-                strcat(g_keys, keys);   /* 累计键流（S 重放用） */
             if (!*keys) { printf("EMPTY\n"); fflush(stdout); continue; }
             int dead = 0;
             for (const char *k = keys; *k; ++k) {
@@ -215,6 +269,22 @@ int wxhost_serve(wxime_engine *eng)
             }
             if (dead) { printf("EMPTY\n"); fflush(stdout); continue; }
             int n = wait_candidates(WAIT_CAND, 1);
+            /* 强制搜索（实验，WXHOST_FORCE_SEARCH=1 开）：search_candidates
+             * 可触发引擎重新搜索+推新迭代器事件（引擎日志实证），但会话缺
+             * search 包装器时第 4 键起解引用 -1 崩（VEH 兜底退出重启）。
+             * 默认关；正解 = SessionConfig 快照里找 search_instantly 位。 */
+            static int force_search = -1;
+            if (force_search < 0) {
+                const char *fs = getenv("WXHOST_FORCE_SEARCH");
+                force_search = (fs && *fs) ? 1 : 0;
+            }
+            if (n <= 0 && *g_keys && force_search) {
+                fprintf(stderr, "[wxhost] B \"%s\" 无新表 → search_candidates\n", keys);
+                if (wxime_search_now(sess) == 1) {
+                    wxime_event_clear_all();
+                    n = wait_candidates(1200, 1);
+                }
+            }
             /* 延迟计测：打字卡顿定位（用户可感 2-3s 时看此值分布） */
             fprintf(stderr, "[wxhost] B \"%s\" 候选=%d 耗时=%llums\n",
                     keys, n > 0 ? n : g_snap_n,

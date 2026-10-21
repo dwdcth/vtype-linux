@@ -333,10 +333,26 @@ wxime_engine *wxime_open(const char *engine_dir, const char *client_name)
     return e;
 }
 
+/* SessionConfig 实验补丁：WXHOST_SC_PATCH="off:val[,off:val…]"（hex）——
+ * 找 with_search_candidate_instantly 等布尔位（server 快照里是 0 的区段） */
+static void apply_sc_patch(unsigned char *sc)
+{
+    const char *p = getenv("WXHOST_SC_PATCH");
+    if (!p) return;
+    while (*p) {
+        int off = 0, val = 0; int n1 = -1;
+        if (sscanf(p, "%x:%x%n", &off, &val, &n1) != 2 || n1 <= 0) break;
+        if (off >= 0 && off < WXIME_SESSIONCFG_SIZE) sc[off] = (unsigned char)val;
+        p += n1;
+        if (*p == ',') p++;
+    }
+}
+
 wxime_session *wxime_session_open(wxime_engine *eng)
 {
     unsigned char sc[WXIME_SESSIONCFG_SIZE];
     memcpy(sc, k_sc_real, sizeof k_sc_real);
+    apply_sc_patch(sc);
     *(const char **)(sc + 0xC0) = "wxhost";
     *(int *)(sc + 0xDC) = 5;
 
@@ -510,6 +526,21 @@ int wxime_query_sequel(wxime_session *s, const char *before)
     return r;
 }
 
+/* ★立即搜索（wxime_search_candidates(session)→bool，1eacc0 反汇编：单参、
+ * 向引擎单例虚调用 [vt+0x20] 投搜索请求）。引擎对 4+ 键简拼不再主动推
+ * 新候选迭代器（fccdjny 实测第 3 键起），本调用强制搜索当前组词——
+ * Android 侧 with_search_candidate_instantly 会话包装的手动版。 */
+int wxime_search_now(wxime_session *s)
+{
+    typedef int (*fn_t)(void *);
+    fn_t f = (fn_t)(uintptr_t)GetProcAddress(s->eng->dll, "wxime_search_candidates");
+    if (!f) return -1;
+    for (int i = 0; i < 100 && !wxime_event_listener_idle(); i++) Sleep(2);
+    int r = f(s->handle);
+    wxime_log("search_candidates -> %d", r);
+    return r;
+}
+
 int wxime_session_reset(wxime_session *s)
 {
     wxime_destroy_session_fn destroy =
@@ -521,6 +552,7 @@ int wxime_session_reset(wxime_session *s)
     }
     unsigned char sc[WXIME_SESSIONCFG_SIZE];
     memcpy(sc, k_sc_real, sizeof k_sc_real);
+    apply_sc_patch(sc);
     *(const char **)(sc + 0xC0) = "wxhost";
     *(int *)(sc + 0xDC) = 5;
     wxime_log("create_session（重置）...");

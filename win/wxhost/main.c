@@ -121,8 +121,11 @@ int main(int argc, char **argv)
 
     /* 单实例锁：fcitx5 重启拉新 wxhost 时旧实例可能还活着（wine 进程
      * 退出滞后），两实例抢用户词典 LOCK → initialize 抛 C++ 异常
-     * （0xe06d7363，实测崩溃源）。等待旧实例退出（最长 15s）。 */
-    HANDLE single = CreateMutexA(NULL, TRUE, "Global\\wxhost_wetype_ime");
+     * （0xe06d7363，实测崩溃源）。等待旧实例退出（最长 15s）。
+     * WXHOST_NO_LOCK=1 供隔离测试实例（独立引擎目录副本）跳过。 */
+    HANDLE single = NULL;
+    if (!getenv("WXHOST_NO_LOCK"))
+        single = CreateMutexA(NULL, TRUE, "Global\\wxhost_wetype_ime");
     if (single && GetLastError() == ERROR_ALREADY_EXISTS) {
         fprintf(stderr, "[wxhost] 已有实例在跑，等它退出...\n");
         for (int i = 0; i < 30; i++) {
