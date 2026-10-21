@@ -238,9 +238,9 @@ def unrelated_release(c):
         c.press("b", delay=0, release=True)
         c.press("backspace", delay=0)
     settle(3)
-    check(c.commits == baseline_commits, "pending replay differs from normal input: %r" % c.commits)
+    check(c.commits == ["你好", "！"], "queued punctuation or deleted b incorrect: %r" % c.commits)
     check(not any(e[0] == ord("!") and not e[-1] for e in c.forwarded),
-          "consumed punctuation press was forwarded twice: %r" % c.forwarded)
+          "fullwidth ! press also forwarded: %r" % c.forwarded)
     check(any(e[0] == ord("!") and e[-1] for e in c.forwarded),
           "unrelated ! release lost: %r" % c.forwarded)
     check(not any(e[0] == ord("b") for e in c.forwarded),
