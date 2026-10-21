@@ -62,8 +62,10 @@ static LONG WINAPI crash_veh(PEXCEPTION_POINTERS ep)
         (unsigned long long)ep->ExceptionRecord->ExceptionInformation[1];
     HMODULE lib = GetModuleHandleA("libwxhld.dll");
     unsigned long long base = lib ? (unsigned long long)lib : 0;
-    if (base && fault == (unsigned long long)-1 &&
+    if (base && fault >= (unsigned long long)-16 &&
         rip >= base + 0x1e2d30 && rip < base + 0x1e2ee0) {
+        /* 区间内小负数 fault = 半构造/已释放 iterator（-1 哨兵、-12
+         * 无效 vtable 实测）——统一跳安全出口 */
         ep->ContextRecord->Rip = base + 0x1e2e9f;   /* 安全出口 */
         ep->ContextRecord->Rax = 0;
         return EXCEPTION_CONTINUE_EXECUTION;

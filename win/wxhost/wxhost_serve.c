@@ -35,6 +35,11 @@ static char g_keys[128];
 static int g_snap_stale;   /* 快照来自"沿用"（B 无新事件）——其 tlv 凭证
                             * 可能与引擎状态不符，S 直接用会抛 C++ 异常
                             * （实测 Unhandled 0xe06d7363）。S 时走重放。 */
+static int g_need_reset;   /* 惰性会话重建：S 整段后不立即 destroy+create
+                            * （与引擎事件分发线程并发——listener 枚举拿半
+                            * 构造/已释放 iterator，实测 use-after-free 崩
+                            * 在 get_candidates+0x49 vtable call）。挪到下
+                            * 一次 B 前：彼时打字静默期，无并发。 */
 static wxime_candidate g_snap[MAX_CAND];
 static int g_snap_n;
 
@@ -183,6 +188,19 @@ int wxhost_serve(wxime_engine *eng)
         if ((line[0] == 'B' || line[0] == 'L') && line[1] == ' ') {
             const char *keys = line + 2;
             ULONGLONG t_b0 = GetTickCount64();
+            if (g_need_reset) {
+                g_need_reset = 0;
+                g_snap_n = 0;
+                g_keys[0] = 0;
+                wxime_event_clear_all();
+                wxime_session_reset(sess);   /* 打字静默期：无分发并发 */
+                fprintf(stderr, "[wxhost] B 前惰性会话重建\n");
+                fflush(stderr);
+                wait_candidates(800, 0);   /* warm_up 事件落定 */
+                wxime_event_clear_all();
+            }
+            if (strlen(g_keys) + strlen(keys) < sizeof g_keys)
+                strcat(g_keys, keys);   /* 累计键流（S 重放用） */
             if (strlen(g_keys) + strlen(keys) < sizeof g_keys)
                 strcat(g_keys, keys);   /* 累计键流（S 重放用） */
             if (!*keys) { printf("EMPTY\n"); fflush(stdout); continue; }
@@ -298,13 +316,13 @@ int wxhost_serve(wxime_engine *eng)
                         idx, g_snap[idx].word);
                 snprintf(g_last_word, sizeof g_last_word, "%s", g_snap[idx].word);
                 g_snap_n = 0;
-                g_keys[0] = 0;   /* 整段完成 = 会话重建，键流归零 */
-                /* ★整段完成 = 引擎会话进入 post-commit 终态（实测事件分发
-                 * 停摆，之后按键零事件）——自动销毁重建，回到初始态。
-                 * 对齐插件契约：OK = 插件清缓冲，引擎侧同样干净。
-                 * 上屏词同时记用户历史（联想数据源，见 wxime_add_history）。 */
+                g_keys[0] = 0;   /* 整段完成 = 会话待重建，键流归零 */
+                /* ★整段完成 = post-commit 终态（之后按键零事件）——重建
+                 * 挪到下一次 B 前（g_need_reset）：立即 destroy/create 会
+                 * 与引擎事件分发线程并发（实测 use-after-free 崩）。
+                 * 上屏词记用户历史（联想数据源，见 wxime_add_history）。 */
                 wxime_add_history(sess, g_last_word);
-                wxime_session_reset(sess);
+                g_need_reset = 1;
                 printf("OK\n"); fflush(stdout);
             }
             continue;
