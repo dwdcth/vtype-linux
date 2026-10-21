@@ -45,6 +45,17 @@ static void locate_addr(unsigned long long addr, char *out, int cap)
  * 模拟"本事件无候选"，分发线程存活。 */
 static LONG WINAPI crash_veh(PEXCEPTION_POINTERS ep)
 {
+    /* C++ 异常（0xe06d7363）漏到顶层 = winedbg 挂死进程（用户可见崩
+     * 溃且不恢复）。快速退出让 fcitx5 插件重拉新实例（秒级恢复）。
+     * 已知来源：select 凭证过期（B 沿用旧表后 S）——上游已加 stale
+     * 重放预防，此处兜底未知路径。 */
+    if (ep->ExceptionRecord->ExceptionCode == 0xe06d7363) {
+        char where2[80];
+        locate_addr((unsigned long long)ep->ContextRecord->Rip, where2, sizeof where2);
+        fprintf(stderr, "[wxhost] 引擎 C++ 异常 @%s → 快速退出（插件将重拉）\n", where2);
+        fflush(stderr);
+        ExitProcess(3);
+    }
     if (ep->ExceptionRecord->ExceptionCode != 0xC0000005) return EXCEPTION_CONTINUE_SEARCH;
     unsigned long long rip = (unsigned long long)ep->ContextRecord->Rip;
     unsigned long long fault =

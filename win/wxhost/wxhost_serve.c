@@ -32,6 +32,9 @@
  * 带凭证的候选表） */
 static char g_last_word[64];
 static char g_keys[128];
+static int g_snap_stale;   /* 快照来自"沿用"（B 无新事件）——其 tlv 凭证
+                            * 可能与引擎状态不符，S 直接用会抛 C++ 异常
+                            * （实测 Unhandled 0xe06d7363）。S 时走重放。 */
 static wxime_candidate g_snap[MAX_CAND];
 static int g_snap_n;
 
@@ -201,9 +204,11 @@ int wxhost_serve(wxime_engine *eng)
             /* 引擎语义：无新事件 = 候选未变化（如 nihao 的 a/o 补全键，
              * 'h' 时的表即当前表）→ 沿用最近有效表。 */
             if (n > 0) {
+                g_snap_stale = 0;
                 reply_cand();
             } else if (g_snap_n > 0) {
                 fprintf(stderr, "[wxhost] B 无新事件，沿用上次候选 %d 个\n", g_snap_n);
+                g_snap_stale = 1;
                 reply_cand();
             } else {
                 printf("EMPTY\n"); fflush(stdout);
@@ -217,8 +222,11 @@ int wxhost_serve(wxime_engine *eng)
              * 直接 ERR 会让 nihaoma 这类补全输入无法上屏。重放 = 会话重
              * 置 + 全量键流 B → 引擎按完整拼音推带凭证候选表 → 按词匹配
              * 选词。代价一次 reset+重打（~1.5s），正确性优先。 */
-            if (idx < 0 || idx >= g_snap_n || !g_snap[idx].tlv) {
+            if (idx < 0 || idx >= g_snap_n || !g_snap[idx].tlv ||
+                g_snap_stale) {
                 const char *word = (idx >= 0 && idx < g_snap_n) ? g_snap[idx].word : NULL;
+                if (g_snap_stale && idx >= 0 && idx < g_snap_n)
+                    fprintf(stderr, "[wxhost] S idx=%d 凭证过期(沿用表) → 重放\n", idx);
                 fprintf(stderr, "[wxhost] S idx=%d 无凭证(n=%d) → 全量重放键流 \"%s\"\n",
                         idx, g_snap_n, g_keys);
                 wxime_session_reset(sess);
