@@ -215,14 +215,20 @@ public:
             setenv("WETYPE_ASSET_DIR", dicts.c_str(), 1);
             setenv("WETYPE_WORK_DIR", work.c_str(), 1);
             if (!winHost.empty()) {
-                // wine 路线：宿主是 PE（win/host/wetype_win_host.c 编译产物），
-                // 负责行协议↔session_v2 管道翻译，管道不在时自己拉起 wetype_server.exe。
-                // 前缀目录随发行树（eng/prefix），不存在则用 wine 默认。
+                // wine 路线。两种宿主，优先 wxhost（Route C：进程内直调
+                // libwxhld.dll，单进程；win/wxhost/ 编译产物，无参数即 serve）；
+                // 缺则回退 wetype_win_host（Route W：行协议↔session_v2 管道
+                // 翻译，自己拉起 wetype_server.exe）。前缀目录随发行树。
                 setenv("WINEDEBUG", "-all", 1);
                 std::string pfx = winHost + "/prefix";
                 struct stat st;
                 if (::stat(pfx.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
                     setenv("WINEPREFIX", pfx.c_str(), 1);
+                std::string wxhost = winHost + "/wxhost.exe";
+                if (::stat(wxhost.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
+                    execlp("wine", "wine", wxhost.c_str(), (char *)nullptr);
+                    _exit(127);
+                }
                 execlp("wine", "wine",
                        (winHost + "/wetype_win_host.exe").c_str(), (char *)nullptr);
                 _exit(127);

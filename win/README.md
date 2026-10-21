@@ -469,7 +469,22 @@ wine dbg.exe    # 断 wxime_initialize(0x1401a0fd8) / create_session(0x1401a6633
       首位你好。测试方法坑记录：pgrep -f 会匹配测试块自身（自杀）、
       每个 wine 实例配独立 wineserver（孤儿 winedevice 污染后续启动，
       清场要连 wineserver/winedevice 一起清）。
-22. **工具与资产**（win/ 内）：
+22. **★fcitx5 全接通（2026-10-21，Route C 上位）**：
+    - **接法**：wxhost 无参数默认 serve（fcitx5 经 wine 调 exe 不传参；
+      日志切 stderr 提前到 wxime_open 前——open 期日志会淹 READY 协议
+      行）；fcitx5 插件宿主自动切换（winHost 目录有 wxhost.exe 用之，
+      缺则回退 wetype_win_host，向后兼容 ARM/QEMU 路线不受影响）。
+    - **真机 E2E PASS**（私有 dbus + wxhost）：addon 加载 → wxhost
+      READY → nihao 5 键全消费 → CAND 解析 → 空格上屏 `COMMITTED=
+      ['你好']`。协议级全链亦通（OPT→ERR 预期/SAVE/S 带代际参数兼容/
+      两轮学习后"你回"升位）。
+    - e2e runner 坑：临时 XDG_DATA_HOME 会遮蔽 ~/.local 的 addon/
+      inputmethod 描述（`wetype-im not valid`）——须把 wetype.conf 与
+      wetype-im.conf 链入临时 data 目录。测试脚本复用
+      fcitx5-wetype/e2e/dbus_wetype_test.py（/tmp/run_wine_e2e.sh）。
+    - 新拓扑收益：fcitx5 → 插件 → wine wxhost（**单进程直调引擎**），
+      砍掉 Route W 的管道翻译层与 wetype_server 双进程。
+23. **工具与资产**（win/ 内）：
     - probes：**probe3.c**（路线 C 主力，含词典表/真值回放）、dbg3.c（config_dict
       参数捕获）、dbg4.c（libwxhld 相对断点通用模板）、dbg5.c（InitInfo 字符串/
       解引用层捕获）、dbg6.c（调试 probe3 自身）。

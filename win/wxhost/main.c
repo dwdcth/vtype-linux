@@ -63,18 +63,30 @@ static LONG WINAPI crash_veh(PEXCEPTION_POINTERS ep)
 
 int main(int argc, char **argv)
 {
-    /* 两种模式：
-     *   wxhost.exe --serve [引擎目录]   行协议服务（fcitx5 插件后端）
-     *   wxhost.exe [引擎目录]           演示：nihao→候选→选词→活性验证 */
-    int serve = argc > 1 && !strcmp(argv[1], "--serve");
-    const char *engine_dir = serve ? (argc > 2 ? argv[2] : ".")
-                                   : (argc > 1 ? argv[1] : ".");
+    /* 模式（fcitx5 插件经 wine 调用不传参数，默认必须是 serve）：
+     *   无参数 / --serve [目录] → 行协议服务
+     *   --demo [目录] / <目录>   → 演示（nihao→选词→活性验证，兼容旧调用） */
+    const char *a1 = argc > 1 ? argv[1] : NULL;
+    int serve = 1;
+    const char *engine_dir = ".";
+    if (a1 && !strcmp(a1, "--demo")) {
+        serve = 0;
+        if (argc > 2) engine_dir = argv[2];
+    } else if (a1 && a1[0] != '-') {
+        serve = 0;
+        engine_dir = a1;
+    } else if (argc > 2) {
+        engine_dir = argv[2];
+    }
     /* cwd 钉到引擎目录：引擎的用户词典（Tencent\WeType\ImeDir、1/）走
      * 相对路径——不钉的话学习数据散落在调用方 cwd（fcitx5/rime 前端
      * cwd 各异 → 学习分裂）。 */
     SetCurrentDirectoryA(engine_dir);
     AddVectoredExceptionHandler(1, crash_veh);
 
+    /* serve 模式 stdout 是协议通道：日志切 stderr 必须在 wxime_open
+     * 之前（open 期日志量大，fcitx5 插件按行精确匹配 READY 会被淹） */
+    if (serve) wxime_log_to_stderr();
     wxime_engine *eng = wxime_open(engine_dir, "wxhost");
     if (!eng) { wxime_log("wxime_open 失败"); return 1; }
 
