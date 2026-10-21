@@ -63,7 +63,6 @@ ARM 路线共用 `wetype-cloud.py`，不受影响。
 | 性能 | 模拟开销 | 原生速度，无 QEMU |
 | 覆盖 | 主线，全部功能 | x86_64 + wine 环境 |
 
-曾探索过不经 server、进程内直调 `libwxhld.dll` 的单 exe 宿主
-（wxhost），因引擎对候选事件的消费契约存在未解之谜（带迭代器的
-`CandidateUpdatedEvent` 只送达官方 server 的完整契约消费者），长句
-候选不完整，已回退到本路线。相关代码与调查记录未入库。
+曾试过不经 server、进程内直调 `libwxhld.dll` 的单宿主方案，因引擎
+候选事件的消费契约只对官方 server 完整开放（长句候选不完整、稳定性
+差），已放弃；相关代码未入库。

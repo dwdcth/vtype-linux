@@ -36,12 +36,12 @@
 #define MAX_ID     192     /* 候选 id blob 实测 ~100B，留余量 */
 #define POLL_MS    10
 #define QUIET_MS   100      /* 候选静默窗（原 150：有新代数后静默这么久即取
-                             * 最终表；wxhost 侧实测 100ms 足够合并连发代数，
-                             * 每键固定省 50ms 感知延迟） */
+                             * 最终表；实测 100ms 足够合并连发代数，每键
+                             * 固定省 50ms 感知延迟） */
 #define NOEV_MS    600      /* 无新代数早退窗：server 对部分键（a/o 补全形）
                              * 不推 candidateUpdate，等满总超时 2500ms 是卡顿
-                             * 元凶（wxhost 侧同症同方）。有旧快照则沿用回发
-                             * （候选不闪没），无则 EMPTY。 */
+                             * 元凶。有旧快照则沿用回发（候选不闪没），无则
+                             * EMPTY。 */
 #define WAIT_CAND  2500     /* B 命令候选总超时 */
 #define WAIT_EMIT  1200     /* 选词后等 emit 的超时 */
 
