@@ -22,8 +22,22 @@ HOST_BIN="$ROOT/win/bin/wetype_win_host.exe"
 command -v wine >/dev/null || { echo "未安装 wine" >&2; exit 1; }
 
 mkdir -p "$DEST"
-# 引擎全套（保留目录结构：BuildIn 词库等是相对路径）
+# 引擎全套（保留目录结构：BuildIn 词库等是相对路径）。
+# ★Tencent/ 是 server 的运行状态（用户词典学习、会话 kv）——源目录带的是
+# 出厂内容，整体覆盖会把学习记录清零（实测 fccdjny 的学习提权丢失、
+# 候选排序回出厂）。覆盖前临时移开，装完放回。
+TMP_KEEP=""
+if [ -d "$DEST/Tencent" ] && [ -d "$SRC_ENGINE/Tencent" ]; then
+  TMP_KEEP="$(mktemp -d)"
+  mv "$DEST/Tencent" "$TMP_KEEP/Tencent"
+fi
 cp -a "$SRC_ENGINE/." "$DEST/"
+if [ -n "$TMP_KEEP" ]; then
+  rm -rf "$DEST/Tencent"
+  mv "$TMP_KEEP/Tencent" "$DEST/Tencent"
+  rmdir "$TMP_KEEP"
+  echo "已保留 server 用户数据: $DEST/Tencent"
+fi
 
 # 剔除历史实验产物（探针 exe / 调试转储）与符号文件；
 # 官方文件（wetype_server.exe、Uninstall.exe、CrashRpt 等）全部保留。
